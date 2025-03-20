@@ -5,8 +5,7 @@ from frappe_pywce.util import FrappeStorageManager, log_incoming_hook_message
 from pywce import Engine, client, EngineConfig
 
 
-
-def get_config() -> Engine:
+def get_wa_config() -> client.WhatsApp:
     docSettings = frappe.get_single("PywceConfig")
 
     _wa_config = client.WhatsAppConfig(
@@ -16,10 +15,14 @@ def get_config() -> Engine:
         app_secret=docSettings.get_password('app_secret')
     )
 
-    whatsapp = client.WhatsApp(_wa_config)
+    return client.WhatsApp(_wa_config)
+
+
+def get_engine_config() -> Engine:
+    docSettings = frappe.get_single("PywceConfig")
 
     _eng_config = EngineConfig(
-        whatsapp=whatsapp,
+        whatsapp=get_wa_config(),
         storage_manager=FrappeStorageManager(),
         start_template_stage=docSettings.initial_stage,
         session_manager=FrappeRedisSessionManager(),
