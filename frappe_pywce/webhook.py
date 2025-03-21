@@ -1,6 +1,10 @@
-from frappe_pywce.api import get_wa_config
+import asyncio
+from frappe_pywce.api import get_engine_config, get_wa_config
 import frappe
-import pywce
+
+
+def engine_bg_task(payload: dict, headers: dict) -> None:
+    asyncio.run(get_engine_config().process_webhook(webhook_data=payload, webhook_headers=headers))
 
 
 def _verifier():
@@ -16,13 +20,18 @@ def _verifier():
 def _handle_webhook():
     payload = frappe.request.data
     headers = dict(frappe.request.headers)
-    pass
 
-def engine_bg_task(payload: dict, headers: dict) -> None:
-    await engine.process_webhook(webhook_data=payload, webhook_headers=headers)
+    frappe.enqueue(
+        engine_bg_task,
+        queue="frappe_pywce",
+        payload=payload,
+        headers=headers
+    )
+
+    return "OK"
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
-def webhook_handler():
+def webhook():
     if frappe.request.method == 'GET':
         return _verifier()
     
