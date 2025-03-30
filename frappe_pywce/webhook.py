@@ -1,5 +1,6 @@
 import asyncio
-from frappe_pywce.api import get_engine_config, get_wa_config
+
+from frappe_pywce.config import get_engine_config, get_wa_config
 import frappe
 
 
