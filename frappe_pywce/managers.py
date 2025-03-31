@@ -1,5 +1,5 @@
-import json
-from pywce import ISessionManager, storage, template
+from frappe_pywce.util import get_cachable_template
+from pywce import EngineConstants, ISessionManager, storage, template
 import frappe
 from typing import Dict, Any, List, Type, Union, TypeVar
 
@@ -18,78 +18,23 @@ class FrappeStorageManager(storage.IStorageManager):
     
     def triggers(self) -> List[template.EngineRoute]:
         triggers = frappe.get_all(doctype="Template Trigger", fields=['regex', 'template'], limit_page_length=100)
-        result = {}
+        routes = []
 
         for trigger in triggers:
-            result[trigger.get('template')] = trigger.get('regex') if trigger.get('regex').startswith("re:") else f"re:{trigger.get('regex')}" 
+            routes.append(template.EngineRoute(
+                user_input=trigger.get('regex') if trigger.get('regex').startswith(EngineConstants.REGEX_PLACEHOLDER) else f"{EngineConstants.REGEX_PLACEHOLDER}{trigger.get('regex')}",
+                is_regex=trigger.get('regex').startswith(EngineConstants.REGEX_PLACEHOLDER),
+                next_stage=trigger.get('template')
+            ))
         
-        return result
+        return routes
 
     def get(self, name) -> template.EngineTemplate:
         if self.exists(name) is True:
-            template = frappe.get_doc("Chatbot Template", name)
-            tpl = template.as_dict()
-
-            routes = {}
-
-            for route in tpl.get("routes"):
-                _input = route.get('user_input')
-                if route.get('regex') == 1:
-                    _input = f"re:{_input}"
-
-                routes[_input] = route.get('template')
-
-            template_message = json.loads(template.body)
-
-            engine_template = {
-                "type": template.template_type,
-                "message": template_message.get("message") if template.template_type.lower() == 'text' else template_message,
-                "routes": routes
-            }
-
-            # hooks
-            if template.params:
-                engine_template["params"] = json.loads(template.params)
-
-            if template.prop:
-                engine_template["prop"] = template.prop
-
-            if template.template:
-                engine_template["template"] = template.template
-
-            if template.on_receive:
-                engine_template["on-receive"] = template.on_receive
-
-            if template.middleware:
-                engine_template["middleware"] = template.middleware
-
-            if template.router:
-                engine_template["router"] = template.router
-
-            if template.on_generate:
-                engine_template["on-generate"] = template.on_generate
-
-            if template.validator:
-                engine_template["validator"] = template.validator
-
-            if template.checkpoint:
-                engine_template["checkpoint"] = template.checkpoint == 1
-
-            if template.reply_message_id:
-                engine_template["message-id"] = template.reply_message_id
-
-            if template.ack:
-                engine_template["ack"] = template.ack == 1
-
-            if template.authenticated:
-                engine_template["authenticated"] = template.authenticated == 1
-
-            print('ENGINE TEMPLATE: ', engine_template)
-
-            return engine_template
+            return template.Template.as_model(get_cachable_template(name))
 
 
-        raise ValueError("template not found")
+        raise ValueError(f"Template: {name}, not found!")
 
 
 class FrappeRedisSessionManager(ISessionManager):
@@ -103,12 +48,27 @@ class FrappeRedisSessionManager(ISessionManager):
     """
 
     _global_key_ = "pywce_global"
-    _user_prop_key_ = "pywce_prop_key"
+    _pywce_prefix_ = "pywce:"
 
     def __init__(self, val_exp=600, global_exp=1800):
         """Initialize session manager with default expiry time."""
         self.expiry = val_exp
         self.global_expiry = global_exp
+
+    def _get_prefixed_key(self, session_id, key):
+        """Helper to create prefixed cache keys."""
+        return f"{self._pywce_prefix_}{session_id}:{key}"
+
+    @staticmethod
+    def set_user_auth_hook():
+        """
+            Helper method to flag user as authenticated
+        """
+        pass
+
+    @property
+    def prop_key(self) -> str:
+        return "pywce_prop_key"
 
     def session(self, session_id: str) -> "FrappeRedisSessionManager":
         """Initialize session in Redis if it doesn't exist."""
@@ -117,7 +77,7 @@ class FrappeRedisSessionManager(ISessionManager):
     def save(self, session_id: str, key: str, data: Any) -> None:
         """Save a key-value pair into the session."""
         frappe.cache().set_value(
-            key=key, 
+            key=self._get_prefixed_key(session_id, key), 
             val=data,
             user=session_id,
             expires_in_sec=self.expiry
@@ -126,7 +86,7 @@ class FrappeRedisSessionManager(ISessionManager):
     def save_global(self, key: str, data: Any) -> None:
         """Save global key-value pair."""
         frappe.cache().set_value(
-            key=key, 
+            key=self._get_prefixed_key(self._global_key_, key), 
             val=data,
             user=self._global_key_,
             expires_in_sec=self.global_expiry
@@ -135,7 +95,7 @@ class FrappeRedisSessionManager(ISessionManager):
     def get(self, session_id: str, key: str, t: Type[T] = None) -> Union[Any, T]:
         """Retrieve a specific key from session."""
         session_data = frappe.cache().get_value(
-            key=key,
+            key=self._get_prefixed_key(session_id, key),
             user=session_id,
             expires=True
         )
@@ -148,7 +108,7 @@ class FrappeRedisSessionManager(ISessionManager):
     def get_global(self, key: str, t: Type[T] = None) -> Union[Any, T]:
         """Retrieve global data."""
         global_data = frappe.cache().get_value(
-            key=key,
+            key=self._get_prefixed_key(self._global_key_, key),
             user=self._global_key_,
             expires=True
         )
@@ -165,7 +125,7 @@ class FrappeRedisSessionManager(ISessionManager):
     def evict(self, session_id: str, key: str) -> None:
         """Remove a key from session."""
         frappe.cache().delete_value(
-            keys=[key],
+            keys=[self._get_prefixed_key(session_id, key)],
             user=session_id,
             make_keys=True
         )
@@ -201,7 +161,7 @@ class FrappeRedisSessionManager(ISessionManager):
 
     def get_user_props(self, session_id: str) -> Dict[str, Any]:
         """Retrieve user properties."""
-        return self.get(session_id, self._user_prop_key_) or {}
+        return self.get(session_id, self.prop_key) or {}
 
     def evict_prop(self, session_id: str, prop_key: str) -> bool:
         """Remove a property from user props."""
@@ -210,7 +170,7 @@ class FrappeRedisSessionManager(ISessionManager):
             return False
         
         del current_props[prop_key]
-        self.save(session_id, self._user_prop_key_, current_props)
+        self.save(session_id, self.prop_key, current_props)
         return True
 
     def get_from_props(self, session_id: str, prop_key: str, t: Type[T] = None) -> Union[Any, T]:
@@ -222,4 +182,4 @@ class FrappeRedisSessionManager(ISessionManager):
         """Save a property in user props."""
         current_props = self.get_user_props(session_id)
         current_props[prop_key] = data
-        self.save(session_id, self._user_prop_key_, current_props)
+        self.save(session_id, self.prop_key, current_props)

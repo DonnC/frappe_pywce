@@ -14,7 +14,7 @@ def get_wa_config() -> client.WhatsApp:
         phone_number_id=docSettings.phone_id,
         hub_verification_token=docSettings.webhook_token,
         app_secret=docSettings.get_password('app_secret'),
-        enforce_security=True
+        enforce_security=False
     )
 
     return client.WhatsApp(_wa_config)

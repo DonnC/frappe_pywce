@@ -18,7 +18,6 @@
   "column_break_bsct",
   "router",
   "on_generate",
-  "validator",
   "others_section",
   "reply_message_id",
   "column_break_uldf",
@@ -65,30 +64,38 @@
   },
   {
    "collapsible": 1,
-   "description": "Connect custom python dotted paths with business logic",
+   "description": "Connect python server scripts with business logic",
    "fieldname": "hooks_section",
    "fieldtype": "Section Break",
    "label": "Hooks"
   },
   {
    "fieldname": "on_receive",
-   "fieldtype": "Data",
-   "label": "On Receive"
+   "fieldtype": "Link",
+   "label": "On Receive",
+   "link_filters": "[[\"Server Script\",\"script_type\",\"=\",\"API\"]]",
+   "options": "Server Script"
   },
   {
    "fieldname": "on_generate",
-   "fieldtype": "Data",
-   "label": "On Generate"
+   "fieldtype": "Link",
+   "label": "On Generate",
+   "link_filters": "[[\"Server Script\",\"script_type\",\"=\",\"API\"]]",
+   "options": "Server Script"
   },
   {
    "fieldname": "router",
-   "fieldtype": "Data",
-   "label": "Router"
+   "fieldtype": "Link",
+   "label": "Router",
+   "link_filters": "[[\"Server Script\",\"script_type\",\"=\",\"API\"]]",
+   "options": "Server Script"
   },
   {
    "fieldname": "template",
-   "fieldtype": "Data",
-   "label": "Template"
+   "fieldtype": "Link",
+   "label": "Template",
+   "link_filters": "[[\"Server Script\",\"script_type\",\"=\",\"API\"]]",
+   "options": "Server Script"
   },
   {
    "collapsible": 1,
@@ -128,17 +135,14 @@
   },
   {
    "fieldname": "middleware",
-   "fieldtype": "Data",
-   "label": "Middleware"
+   "fieldtype": "Link",
+   "label": "Middleware",
+   "link_filters": "[[\"Server Script\",\"script_type\",\"=\",\"API\"]]",
+   "options": "Server Script"
   },
   {
    "fieldname": "column_break_bsct",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "validator",
-   "fieldtype": "Data",
-   "label": "Validator"
   },
   {
    "fieldname": "column_break_uldf",
@@ -173,7 +177,7 @@
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-19 21:18:16.342662",
+ "modified": "2025-03-31 12:37:53.827839",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "Chatbot Template",
