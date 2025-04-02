@@ -1,9 +1,15 @@
+from functools import wraps
 import json
 from typing import Optional, Union
-import frappe
-from pywce import EngineConstants, HookArg, TemplateTypeConstants
 
+import frappe
+from pywce import EngineConstants, TemplateTypeConstants, pywce_logger
+
+import frappe.utils
 from frappe.utils.caching import redis_cache
+import frappe.utils.safe_exec
+
+logger = pywce_logger.DefaultPywceLogger(use_print=True)
 
 def _get_hook(hook:Optional[str]=None):
     if hook is None:
@@ -24,46 +30,21 @@ def _get_message(kind: str, msg: dict) -> Union[str, dict]:
     return msg
 
 
-def log_incoming_hook_message(arg: HookArg) -> None:
-    """
-    initiate(arg: HookArg)
+# def signature_required_frappe(f):
+#     """Decorator to enforce signature verification for Frappe webhooks."""
+#     @wraps(f)
+#     def decorated_function(*args, **kwargs):
+#         payload = frappe.request.get_data().decode("utf-8")
+#         headers = dict(frappe.request.headers)
 
-    A global pre-hook called everytime & before any other hooks are processed.
+#         if not self.verify_webhook_payload(payload, headers):
+#             frappe.logger().critical("Webhook payload signature verification failed")
+#             frappe.throw("Webhook payload verification failed")
 
-    Args:
-        arg (HookArg): pass hook argument from engine
+#         return f(*args, **kwargs)
 
-    Returns:
-        None: global hooks have no need to return anything
-    """
-    frappe.log(f"{'*' * 10} New incoming request arg {'*' * 10}")
-    frappe.log(arg)
-    frappe.log(f"{'*' * 30}")
-
-
-def frappe_hook_processor(arg: HookArg) -> HookArg:
-    """
-    initiate(arg: HookArg)
-
-    An external hook processor, runs frappe server scripts as hooks
-
-    Args:
-        arg (HookArg): pass hook argument from engine
-
-    Returns:
-        arg: updated hook arg
-    """
-
-    script_name = arg.hook.replace(EngineConstants.EXT_HOOK_PROCESSOR_PLACEHOLDER, "").strip()
-
-    frappe.log(f"Running server script: {script_name}")
-
-    # response is a dict which can be serialized to HookArg
-    response = frappe.call(script_name, arg.model_dump())
-
-    frappe.log(f"Server script response: {response}")
-
-    return arg
+#     return decorated_function
+    
 
 def frappe_to_yaml_dict(frappe_dict: dict) -> dict:
     """

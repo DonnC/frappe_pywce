@@ -48,7 +48,6 @@ class FrappeRedisSessionManager(ISessionManager):
     """
 
     _global_key_ = "pywce_global"
-    _pywce_prefix_ = "pywce:"
 
     def __init__(self, val_exp=600, global_exp=1800):
         """Initialize session manager with default expiry time."""
@@ -57,7 +56,7 @@ class FrappeRedisSessionManager(ISessionManager):
 
     def _get_prefixed_key(self, session_id, key):
         """Helper to create prefixed cache keys."""
-        return f"{self._pywce_prefix_}{session_id}:{key}"
+        return f"pywce:{session_id}:{key}"
 
     @staticmethod
     def set_user_auth_hook():
@@ -79,7 +78,6 @@ class FrappeRedisSessionManager(ISessionManager):
         frappe.cache().set_value(
             key=self._get_prefixed_key(session_id, key), 
             val=data,
-            user=session_id,
             expires_in_sec=self.expiry
         )
 
@@ -88,7 +86,6 @@ class FrappeRedisSessionManager(ISessionManager):
         frappe.cache().set_value(
             key=self._get_prefixed_key(self._global_key_, key), 
             val=data,
-            user=self._global_key_,
             expires_in_sec=self.global_expiry
         )
 
@@ -96,7 +93,6 @@ class FrappeRedisSessionManager(ISessionManager):
         """Retrieve a specific key from session."""
         session_data = frappe.cache().get_value(
             key=self._get_prefixed_key(session_id, key),
-            user=session_id,
             expires=True
         )
 
@@ -109,7 +105,6 @@ class FrappeRedisSessionManager(ISessionManager):
         """Retrieve global data."""
         global_data = frappe.cache().get_value(
             key=self._get_prefixed_key(self._global_key_, key),
-            user=self._global_key_,
             expires=True
         )
 
@@ -126,7 +121,6 @@ class FrappeRedisSessionManager(ISessionManager):
         """Remove a key from session."""
         frappe.cache().delete_value(
             keys=[self._get_prefixed_key(session_id, key)],
-            user=session_id,
             make_keys=True
         )
 

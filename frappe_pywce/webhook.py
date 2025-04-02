@@ -41,6 +41,7 @@ def _handle_webhook():
         payload=payload_dict,
         headers=normalized_headers
     )
+    # asyncio.run(get_engine_config().process_webhook(webhook_data=payload_dict, webhook_headers=normalized_headers))
 
     return "OK"
 
@@ -54,8 +55,6 @@ def clear_session():
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 def webhook():
-    print(f"New webhook request: {frappe.request.method} | {frappe.request.data}")
-
     if frappe.request.method == 'GET':
         return _verifier()
     
