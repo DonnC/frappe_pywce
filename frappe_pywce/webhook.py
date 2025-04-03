@@ -35,13 +35,18 @@ def _handle_webhook():
     except json.JSONDecodeError as e:
         frappe.throw("Invalid webhook data", exc=frappe.ValidationError)
 
-    frappe.enqueue(
-        engine_bg_task,
-        queue="short",
-        payload=payload_dict,
-        headers=normalized_headers
-    )
-    # asyncio.run(get_engine_config().process_webhook(webhook_data=payload_dict, webhook_headers=normalized_headers))
+    should_run_in_bg = frappe.db.get_single_value('PywceConfig', 'process_in_background')
+
+    if should_run_in_bg == 1:
+        frappe.enqueue(
+            engine_bg_task,
+            queue="short",
+            payload=payload_dict,
+            headers=normalized_headers
+        )
+
+    else:
+        asyncio.run(get_engine_config().process_webhook(webhook_data=payload_dict, webhook_headers=normalized_headers))
 
     return "OK"
 

@@ -13,7 +13,9 @@
   "app_secret",
   "webhook_token",
   "template_settings_section",
-  "initial_stage"
+  "initial_stage",
+  "column_break_qzil",
+  "process_in_background"
  ],
  "fields": [
   {
@@ -64,6 +66,17 @@
    "label": "Initial Stage",
    "options": "Chatbot Template",
    "reqd": 1
+  },
+  {
+   "fieldname": "column_break_qzil",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "handle every webhook requests in the background<br>\nUsing: <b><i>frappe.enqueue</i></b>",
+   "fieldname": "process_in_background",
+   "fieldtype": "Check",
+   "label": "Handle in background?"
   }
  ],
  "grid_page_length": 50,
@@ -71,7 +84,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-19 22:05:28.767717",
+ "modified": "2025-04-03 20:58:37.305817",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "PywceConfig",

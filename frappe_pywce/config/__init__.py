@@ -1,21 +1,26 @@
+import asyncio
+import inspect
 import frappe
-from frappe.utils.safe_exec import safe_exec
+from frappe.utils.safe_exec import safe_exec, is_safe_exec_enabled
 
 from frappe_pywce.managers import FrappeRedisSessionManager, FrappeStorageManager
 
 import pywce
-from pywce import Engine, EngineConstants, client, EngineConfig, pywce_logger, HookArg
+from pywce import Engine, EngineConstants, HookService, client, EngineConfig, pywce_logger, HookArg
 
-def _get_safe_globals():
+def hook_bg_task(hook_path: str, arg: HookArg) -> HookArg:
+    return asyncio.run(HookService.process_hook(hook_path, arg))
+
+
+def get_safe_globals():
+    if is_safe_exec_enabled() is False:
+        raise ValueError("Safe exec is not enabled. Please enable it in your configuration.")
+
     # Add custom library and function references to the globals
     ALLOWED_BUILTINS = {
         'print': print,
         'len': len,
-        'dict': dict,
-        'list': list,
         'str': str,
-        'int': int,
-        'float': float,
         'bool': bool,
         'None': None,
         'True': True,
@@ -23,16 +28,12 @@ def _get_safe_globals():
         'type': type,        # Explicitly allow type if needed
         'getattr': getattr,  # Explicitly allow getattr if needed
         'setattr': setattr,  # Explicitly allow setattr if needed
-        'isinstance': isinstance,
-        # --- DO NOT ADD 'open', 'eval', 'exec', '__import__', 'compile', etc. ---
-        # --- Be extremely careful about adding anything else --- 
     }
+
+    pywce_globals = {name: getattr(pywce, name) for name in pywce.__all__}
     
     return {
-        'pywce': pywce,
-        'TemplateDynamicBody': pywce.TemplateDynamicBody,
-        'get_engine_config': get_engine_config,
-        'HookArg': HookArg,
+        **pywce_globals,
         "__builtins__": ALLOWED_BUILTINS
     }
 
@@ -66,28 +67,40 @@ def frappe_hook_processor(arg: HookArg) -> HookArg:
     Returns:
         arg: updated hook arg
     """
-    script_name = arg.hook.replace(EngineConstants.EXT_HOOK_PROCESSOR_PLACEHOLDER, "").strip()
+    hook_name = arg.hook.replace(EngineConstants.EXT_HOOK_PROCESSOR_PLACEHOLDER, "").strip()
 
-    custom_safe_globals = _get_safe_globals()
+    hook_script = frappe.get_doc("Template Hook", hook_name)
 
-    server_script = frappe.get_doc("Server Script", script_name)
+    if hook_script.hook_type == 'Editor Script':
+        exec_globals, _locals = safe_exec(hook_script.script, get_safe_globals(), {})
 
-    if not server_script.script:
-        raise ValueError("Server script content is empty")
+        if 'hook' in _locals:
+            fx = _locals.get('hook')
 
-    local_scope = {}
-    exec_globals, _locals = safe_exec(server_script.script, custom_safe_globals, local_scope)
-
-    if 'hook' in _locals:
-        fx = _locals.get('hook')
-
-        if fx is None:
-            raise ValueError("Hook function is None") 
+            if fx is None:
+                raise ValueError("Hook function is None") 
+            
+            return fx(arg) 
         
-        return fx(arg)
+        raise ValueError("No hook function defined")
     
-    raise ValueError("No hook function defined")
+    # Check if there's an existing running event loop
+    try:
+        loop = asyncio.get_event_loop()
 
+        if loop.is_running():
+            future = asyncio.run_coroutine_threadsafe(HookService.process_hook(hook_script.server_script_path, arg), loop)
+            return future.result()
+
+        else:
+            return asyncio.run(HookService.process_hook(hook_script.server_script_path, arg))
+
+    except RuntimeError as e:
+        # Handle the case where we can't get the event loop or something goes wrong
+        raise RuntimeError(f"Error running async process: {e}")
+    
+
+@frappe.whitelist()
 def get_wa_config() -> client.WhatsApp:
     docSettings = frappe.get_single("PywceConfig")
 
@@ -113,7 +126,6 @@ def get_engine_config() -> Engine:
         logger=pywce_logger.DefaultPywceLogger(use_print=True),
         session_ttl_min=10,
         
-
         # optional fields, depends on the example project being run
         ext_hook_processor=frappe_hook_processor,
         global_pre_hooks=[log_incoming_hook_message]
