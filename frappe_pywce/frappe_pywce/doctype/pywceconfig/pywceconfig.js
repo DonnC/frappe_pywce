@@ -3,24 +3,22 @@
 
 frappe.ui.form.on("PywceConfig", {
   refresh: function (frm) {
-    frm
-      .add_custom_button(__("Chatbot Webhook"), function () {
+    frm.add_custom_button(
+      __("Get Chatbot Webhook"),
+      function () {
         frm.call({
           method: "frappe_pywce.webhook.get_webhook",
           callback: function (r) {
-            if (r.message) {
-              frappe.msgprint({
-                title: __("Webhook"),
-                indicator: "green",
-                message: __(r.message),
-              });
-            }
+            frappe.msgprint(r.message);
           },
         });
-      })
-      .addClass("btn-primary");
-    frm
-      .add_custom_button(__("Clear Cache"), function () {
+      },
+      "Options"
+    );
+
+    frm.add_custom_button(
+      __("Clear Chatbot Cache"),
+      function () {
         frm.call({
           method: "frappe_pywce.webhook.clear_session",
           callback: function (r) {
@@ -31,7 +29,8 @@ frappe.ui.form.on("PywceConfig", {
             });
           },
         });
-      })
-      .addClass("btn-primary");
+      },
+      "Options"
+    );
   },
 });

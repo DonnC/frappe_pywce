@@ -1,5 +1,3 @@
-import asyncio
-import inspect
 import frappe
 from frappe.utils.safe_exec import safe_exec, is_safe_exec_enabled
 
@@ -7,9 +5,6 @@ from frappe_pywce.managers import FrappeRedisSessionManager, FrappeStorageManage
 
 import pywce
 from pywce import Engine, EngineConstants, HookService, client, EngineConfig, pywce_logger, HookArg
-
-def hook_bg_task(hook_path: str, arg: HookArg) -> HookArg:
-    return asyncio.run(HookService.process_hook(hook_path, arg))
 
 
 def get_safe_globals():
@@ -84,20 +79,7 @@ def frappe_hook_processor(arg: HookArg) -> HookArg:
         
         raise ValueError("No hook function defined")
     
-    # Check if there's an existing running event loop
-    try:
-        loop = asyncio.get_event_loop()
-
-        if loop.is_running():
-            future = asyncio.run_coroutine_threadsafe(HookService.process_hook(hook_script.server_script_path, arg), loop)
-            return future.result()
-
-        else:
-            return asyncio.run(HookService.process_hook(hook_script.server_script_path, arg))
-
-    except RuntimeError as e:
-        # Handle the case where we can't get the event loop or something goes wrong
-        raise RuntimeError(f"Error running async process: {e}")
+    return HookService.process_hook(hook_script.server_script_path, arg)
     
 
 @frappe.whitelist()

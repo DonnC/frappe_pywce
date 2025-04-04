@@ -1,12 +1,8 @@
-import asyncio
 import json
 
 from frappe_pywce.config import get_engine_config, get_wa_config
 import frappe
-
-def engine_bg_task(payload: dict, headers: dict) -> None:
-    asyncio.run(get_engine_config().process_webhook(webhook_data=payload, webhook_headers=headers))
-
+import frappe.utils
 
 def _verifier():
     """
@@ -35,18 +31,24 @@ def _handle_webhook():
     except json.JSONDecodeError as e:
         frappe.throw("Invalid webhook data", exc=frappe.ValidationError)
 
-    should_run_in_bg = frappe.db.get_single_value('PywceConfig', 'process_in_background')
+    should_run_in_bg = frappe.db.get_single_value("PywceConfig", "process_in_background")
 
     if should_run_in_bg == 1:
+        wa_user = get_wa_config().util.get_wa_user(payload_dict)
+
+        if wa_user is None:
+            return "Invalid user"
+
         frappe.enqueue(
-            engine_bg_task,
+            get_engine_config().process_webhook,
             queue="short",
-            payload=payload_dict,
-            headers=normalized_headers
+            webhook_data=payload_dict,
+            webhook_headers=normalized_headers,
+            job_id=f"pywce.job:{wa_user.wa_id}:{wa_user.msg_id}"
         )
 
     else:
-        asyncio.run(get_engine_config().process_webhook(webhook_data=payload_dict, webhook_headers=normalized_headers))
+        get_engine_config().process_webhook(webhook_data=payload_dict, webhook_headers=normalized_headers)
 
     return "OK"
 

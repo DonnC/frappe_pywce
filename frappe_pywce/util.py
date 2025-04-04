@@ -5,9 +5,7 @@ from typing import Optional, Union
 import frappe
 from pywce import EngineConstants, TemplateTypeConstants, pywce_logger
 
-import frappe.utils
 from frappe.utils.caching import redis_cache
-import frappe.utils.safe_exec
 
 logger = pywce_logger.DefaultPywceLogger(use_print=True)
 
