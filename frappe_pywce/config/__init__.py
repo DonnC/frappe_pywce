@@ -63,7 +63,6 @@ def frappe_hook_processor(arg: HookArg) -> HookArg:
         arg: updated hook arg
     """
     hook_name = arg.hook.replace(EngineConstants.EXT_HOOK_PROCESSOR_PLACEHOLDER, "").strip()
-
     hook_script = frappe.get_doc("Template Hook", hook_name)
 
     if hook_script.hook_type == 'Editor Script':

@@ -31,9 +31,9 @@
  ],
  "fields": [
   {
+   "description": "e.g START-MENU",
    "fieldname": "template_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Template Name",
    "reqd": 1,
    "unique": 1
@@ -119,6 +119,8 @@
    "default": "0",
    "fieldname": "checkpoint",
    "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Checkpoint?"
   },
   {
@@ -172,7 +174,7 @@
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-03 16:13:21.274106",
+ "modified": "2025-04-05 13:40:23.639706",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "Chatbot Template",
@@ -197,5 +199,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "template_name"
+ "title_field": "template_name",
+ "track_changes": 1
 }

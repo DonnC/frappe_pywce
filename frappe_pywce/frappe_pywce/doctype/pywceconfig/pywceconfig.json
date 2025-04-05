@@ -72,7 +72,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
+   "default": "1",
    "description": "handle every webhook requests in the background<br>\nUsing: <b><i>frappe.enqueue</i></b>",
    "fieldname": "process_in_background",
    "fieldtype": "Check",
@@ -84,7 +84,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-03 20:58:37.305817",
+ "modified": "2025-04-05 13:12:56.149663",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "PywceConfig",

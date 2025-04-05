@@ -44,7 +44,7 @@ def _handle_webhook():
             queue="short",
             webhook_data=payload_dict,
             webhook_headers=normalized_headers,
-            job_id=f"pywce.job:{wa_user.wa_id}:{wa_user.msg_id}"
+            job_id=f"pywce:{wa_user.wa_id}:{wa_user.msg_id}"
         )
 
     else:
