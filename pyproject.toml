@@ -3,7 +3,7 @@ name = "frappe_pywce"
 authors = [
     { name = "donnc", email = "donnclab@gmail.com"}
 ]
-description = "A WhatsApp chatbot engine in frappe powered  by pywce"
+description = "A WhatsApp chatbot engine in frappe powered by pywce"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
