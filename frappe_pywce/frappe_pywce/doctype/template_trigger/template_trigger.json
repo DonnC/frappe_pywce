@@ -6,9 +6,9 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "template",
-  "column_break_qehg",
-  "regex"
+  "section_break_ztvi",
+  "regex",
+  "template"
  ],
  "fields": [
   {
@@ -21,20 +21,22 @@
    "width": "3"
   },
   {
-   "description": "valid python regex. Start with <b>re:</b>",
+   "description": "e.g <i>^start$</i>",
    "fieldname": "regex",
    "fieldtype": "Data",
-   "label": "Regex"
+   "label": "Python Regex",
+   "reqd": 1
   },
   {
-   "fieldname": "column_break_qehg",
-   "fieldtype": "Column Break"
+   "description": "Create & match user input keywords that triggers the given template to render",
+   "fieldname": "section_break_ztvi",
+   "fieldtype": "Section Break"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-16 21:07:15.067152",
+ "modified": "2025-03-19 21:45:50.643148",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "Template Trigger",

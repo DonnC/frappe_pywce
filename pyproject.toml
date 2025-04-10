@@ -3,13 +3,13 @@ name = "frappe_pywce"
 authors = [
     { name = "donnc", email = "donnclab@gmail.com"}
 ]
-description = "A WhatsApp chatbot engine in frappe powered  by pywce"
+description = "A WhatsApp chatbot engine in frappe powered by pywce"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # "frappe~=15.0.0" # Installed and managed by bench.
-    "pywce"
+    "pywce @ git+https://github.com/DonnC/pywce.git@sync"
 ]
 
 [build-system]

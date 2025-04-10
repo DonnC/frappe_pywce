@@ -18,7 +18,6 @@
   "column_break_bsct",
   "router",
   "on_generate",
-  "validator",
   "others_section",
   "reply_message_id",
   "column_break_uldf",
@@ -32,9 +31,9 @@
  ],
  "fields": [
   {
+   "description": "e.g START-MENU",
    "fieldname": "template_name",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Template Name",
    "reqd": 1,
    "unique": 1
@@ -65,30 +64,34 @@
   },
   {
    "collapsible": 1,
-   "description": "Connect custom python dotted paths with business logic",
+   "description": "Connect python server scripts with business logic",
    "fieldname": "hooks_section",
    "fieldtype": "Section Break",
    "label": "Hooks"
   },
   {
    "fieldname": "on_receive",
-   "fieldtype": "Data",
-   "label": "On Receive"
+   "fieldtype": "Link",
+   "label": "On Receive",
+   "options": "Template Hook"
   },
   {
    "fieldname": "on_generate",
-   "fieldtype": "Data",
-   "label": "On Generate"
+   "fieldtype": "Link",
+   "label": "On Generate",
+   "options": "Template Hook"
   },
   {
    "fieldname": "router",
-   "fieldtype": "Data",
-   "label": "Router"
+   "fieldtype": "Link",
+   "label": "Router",
+   "options": "Template Hook"
   },
   {
    "fieldname": "template",
-   "fieldtype": "Data",
-   "label": "Template"
+   "fieldtype": "Link",
+   "label": "Template",
+   "options": "Template Hook"
   },
   {
    "collapsible": 1,
@@ -116,6 +119,8 @@
    "default": "0",
    "fieldname": "checkpoint",
    "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Checkpoint?"
   },
   {
@@ -128,17 +133,13 @@
   },
   {
    "fieldname": "middleware",
-   "fieldtype": "Data",
-   "label": "Middleware"
+   "fieldtype": "Link",
+   "label": "Middleware",
+   "options": "Template Hook"
   },
   {
    "fieldname": "column_break_bsct",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "validator",
-   "fieldtype": "Data",
-   "label": "Validator"
   },
   {
    "fieldname": "column_break_uldf",
@@ -173,7 +174,7 @@
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-16 21:01:41.244665",
+ "modified": "2025-04-05 13:40:23.639706",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "Chatbot Template",
@@ -198,5 +199,6 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "template_name"
+ "title_field": "template_name",
+ "track_changes": 1
 }

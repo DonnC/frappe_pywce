@@ -1,0 +1,107 @@
+{
+ "actions": [],
+ "allow_copy": 1,
+ "allow_rename": 1,
+ "creation": "2025-03-19 22:00:48.366375",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "whatsapp_settings_section",
+  "access_token",
+  "phone_id",
+  "column_break_vxfw",
+  "app_secret",
+  "webhook_token",
+  "template_settings_section",
+  "initial_stage",
+  "column_break_qzil",
+  "process_in_background"
+ ],
+ "fields": [
+  {
+   "fieldname": "whatsapp_settings_section",
+   "fieldtype": "Section Break",
+   "label": "WhatsApp Settings"
+  },
+  {
+   "fieldname": "access_token",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "Access Token",
+   "reqd": 1
+  },
+  {
+   "fieldname": "phone_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Phone ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_vxfw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "app_secret",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "App Secret",
+   "reqd": 1
+  },
+  {
+   "default": "pywce-hub-token-123",
+   "fieldname": "webhook_token",
+   "fieldtype": "Data",
+   "label": "Webhook Token"
+  },
+  {
+   "fieldname": "template_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Template Settings"
+  },
+  {
+   "fieldname": "initial_stage",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Initial Stage",
+   "options": "Chatbot Template",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_qzil",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "handle every webhook requests in the background<br>\nUsing: <b><i>frappe.enqueue</i></b>",
+   "fieldname": "process_in_background",
+   "fieldtype": "Check",
+   "label": "Handle in background?"
+  }
+ ],
+ "grid_page_length": 50,
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-04-05 13:12:56.149663",
+ "modified_by": "Administrator",
+ "module": "Frappe Pywce",
+ "name": "PywceConfig",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

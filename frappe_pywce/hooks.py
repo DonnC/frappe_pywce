@@ -1,9 +1,26 @@
+import logging
+import frappe
+
+
 app_name = "frappe_pywce"
 app_title = "Frappe Pywce"
 app_publisher = "donnc"
-app_description = "A WhatsApp chatbot engine in frappe powered  by pywce"
+app_description = "A WhatsApp chatbot engine in frappe powered by pywce"
 app_email = "donnclab@gmail.com"
-app_license = "mit"
+app_license = "MIT"
+
+def configure_pywce_logging():
+    pywce_logger = logging.getLogger("pywce")
+    frappe_logger = frappe.logger()
+
+    pywce_logger.handlers.clear()
+
+    for handler in frappe_logger.handlers:
+        pywce_logger.addHandler(handler)
+
+    pywce_logger.setLevel(frappe_logger.level)
+    logging.getLogger("pywce").propagate=True
+
 
 # Apps
 # ------------------
@@ -242,3 +259,6 @@ app_license = "mit"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+
+
+configure_pywce_logging()
