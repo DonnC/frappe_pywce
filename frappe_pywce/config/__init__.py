@@ -6,7 +6,6 @@ from frappe_pywce.managers import FrappeRedisSessionManager, FrappeStorageManage
 import pywce
 from pywce import Engine, EngineConstants, HookService, client, EngineConfig, pywce_logger, HookArg
 
-
 def get_safe_globals():
     if is_safe_exec_enabled() is False:
         raise ValueError("Safe exec is not enabled. Please enable it in your configuration.")

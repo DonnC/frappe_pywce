@@ -138,8 +138,11 @@ class FrappeRedisSessionManager(ISessionManager):
         """Remove a key from global storage."""
         self.evict(self._global_key_, key)
 
-    def clear(self, session_id: str) -> None:
-        """Clear the entire session."""
+    def clear(self, session_id: str, retain_keys: List[str] = None) -> None:
+        """Clear the entire session.
+        
+        TODO: implement session retain
+        """
         frappe.cache().delete_keys(session_id)
 
     def clear_global(self) -> None:

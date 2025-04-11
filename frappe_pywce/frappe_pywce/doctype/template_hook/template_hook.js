@@ -35,7 +35,7 @@ frappe.ui.form.on("Template Hook", {
 
 <hr>
 
-<h4>Server Script</h4>
+<h4>Server Side Script</h4>
 <p>Server side python functions with template hook business logic. The hook value must be a full dotted path to the server script</p>
 </br>
 Example: Suppose your custom app name is my_app with a structure as below:
@@ -74,6 +74,32 @@ def hook(arg: HookArg) -> HookArg:
     arg.template_body = TemplateDynamicBody(render_template_payload={"name": arg.user.name})
     
     return arg
+</code></pre>
+
+<hr>
+
+<h4>Authentication</h4>
+<p>To perform auth in Editor Scripts, you can do the following</p>
+<p>The app has a helper whitelisted function for this</p>
+
+<pre><code>
+def hook(arg: HookArg) -> HookArg:
+   current_data = arg.additional_data
+   current_data.update({
+	  'usr': 'your-user-email',
+	  'pwd': 'your-user-password'
+   })
+	
+   # {'success': bool, 'message': 'response message'}
+   result = frappe.call('frappe_pywce.frappe_pywce.hook.defaults.hook_wrapper', login=True, arg=arg)
+    
+   if result.get('success') is False:
+      raise HookError(result.get('message'))
+    
+   # for logout, call | no need for updating arg.additional_data
+   #frappe.call('frappe_pywce.frappe_pywce.hook.defaults.hook_wrapper', login=False, arg=arg)
+    
+   return arg
 </code></pre>
 `);
 	},
