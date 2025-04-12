@@ -13,6 +13,7 @@
   "app_secret",
   "webhook_token",
   "template_settings_section",
+  "site",
   "initial_stage",
   "expiry",
   "column_break_qzil",
@@ -94,6 +95,13 @@
    "fieldname": "wa_id_same_mobile",
    "fieldtype": "Check",
    "label": "Validate wa_id with user mobile?"
+  },
+  {
+   "fieldname": "site",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Site",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -101,7 +109,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-11 14:43:04.707045",
+ "modified": "2025-04-12 17:29:03.198232",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "PywceConfig",

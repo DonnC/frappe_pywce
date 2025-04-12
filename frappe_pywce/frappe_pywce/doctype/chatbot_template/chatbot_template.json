@@ -58,9 +58,7 @@
    "description": "json template message body",
    "fieldname": "body",
    "fieldtype": "JSON",
-   "in_list_view": 1,
-   "label": "Body",
-   "reqd": 1
+   "label": "Body"
   },
   {
    "collapsible": 1,
@@ -167,14 +165,13 @@
    "fieldname": "routes",
    "fieldtype": "Table",
    "label": "Routes",
-   "options": "Chatbot Route",
-   "reqd": 1
+   "options": "Chatbot Route"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-05 13:40:23.639706",
+ "modified": "2025-04-12 20:23:53.970147",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "Chatbot Template",

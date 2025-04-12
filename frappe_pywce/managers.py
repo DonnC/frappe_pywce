@@ -1,3 +1,4 @@
+import re
 from frappe_pywce.util import get_cachable_template
 from pywce import EngineConstants, ISessionManager, storage, template
 import frappe
@@ -54,9 +55,14 @@ class FrappeRedisSessionManager(ISessionManager):
         self.expiry = val_exp
         self.global_expiry = global_exp
 
-    def _get_prefixed_key(self, session_id, key):
+    def _get_prefixed_key(self, session_id, key=None):
         """Helper to create prefixed cache keys."""
-        return f"pywce:{session_id}:{key}"
+        k = f"pywce:{session_id}"
+
+        if key is None:
+            return k
+        
+        return f"{k}:{key}"
 
     @staticmethod
     def set_user_auth_hook():
@@ -115,7 +121,10 @@ class FrappeRedisSessionManager(ISessionManager):
 
     def fetch_all(self, session_id: str, is_global: bool = False) -> Dict[str, Any]:
         """Retrieve all session data."""
-        raise NotImplementedError
+        if is_global:
+            return frappe.cache().get_all(key=self._get_prefixed_key(self._global_key_))
+
+        return frappe.cache().get_all(key=self._get_prefixed_key(session_id))
 
     def evict(self, session_id: str, key: str) -> None:
         """Remove a key from session."""
@@ -140,14 +149,22 @@ class FrappeRedisSessionManager(ISessionManager):
 
     def clear(self, session_id: str, retain_keys: List[str] = None) -> None:
         """Clear the entire session.
-        
-        TODO: implement session retain
         """
-        frappe.cache().delete_keys(session_id)
+        if retain_keys is None or retain_keys == []:
+            frappe.cache().delete_keys(self._get_prefixed_key(session_id))
+            return
+        
+        for retain_key in retain_keys:
+            data = self.fetch_all(session_id)
+            for k, v in data.items():
+                if retain_key in k:
+                    continue
+
+                self.evict(session_id, k)
 
     def clear_global(self) -> None:
         """Clear all global data."""
-        frappe.cache().delete_keys(self._global_key_)
+        frappe.cache().delete_keys(self._get_prefixed_key(self._global_key_))
 
     def key_in_session(self, session_id: str, key: str, check_global: bool = True) -> bool:
         """Check if a key exists in session or global storage."""

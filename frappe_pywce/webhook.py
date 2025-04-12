@@ -1,3 +1,4 @@
+import datetime
 import json
 
 from frappe_pywce.config import get_engine_config, get_wa_config
@@ -35,7 +36,7 @@ def _check_session_expiry(expiry_str):
         return True
 
     try:
-        return frappe.utils.now() > frappe.utils.get_datetime(expiry_str)
+        return datetime.datetime.now() > datetime.datetime.fromisoformat(expiry_str)
     except ValueError:
         return True
 
@@ -81,8 +82,15 @@ def internal_webhook_handler(payload, headers):
         payload (dict): webhook raw payload data to process
         headers (dict): request headers
     """
-    with frappe.init(site=frappe.local.site):
-        logged_in_user = _get_authd_user()
+    site = frappe.db.get_single_value("PywceConfig", "site")
+
+    if not site:
+        frappe.throw(msg="Site not configured in app settings")
+
+    try:
+        frappe.connect(site=site, set_admin_as_user=False)
+
+        logged_in_user = _get_authd_user(payload)
 
         if logged_in_user is not None:
             frappe.set_user(logged_in_user)
@@ -91,6 +99,12 @@ def internal_webhook_handler(payload, headers):
         else:
             get_engine_config().process_webhook(payload, headers)
 
+    except Exception as e:
+        frappe.log_error(title="Chatbot Webhook Handler", message=f"Error handling webhook: {frappe.get_traceback(with_context=True)}")
+
+    finally:
+        frappe.db.close()
+        frappe.set_user('Guest')
 
 def _handle_webhook():
     payload = frappe.request.data

@@ -84,22 +84,54 @@ def hook(arg: HookArg) -> HookArg:
 
 <pre><code>
 def hook(arg: HookArg) -> HookArg:
-   current_data = arg.additional_data
-   current_data.update({
-	  'usr': 'your-user-email',
-	  'pwd': 'your-user-password'
-   })
-	
-   # {'success': bool, 'message': 'response message'}
-   result = frappe.call('frappe_pywce.frappe_pywce.hook.defaults.hook_wrapper', login=True, arg=arg)
+    auth_data = {
+        'usr': arg.session_manager.get_from_props(arg.session_id, 'email'),
+        'pwd': arg.session_manager.get_from_props(arg.session_id, 'pwd'),
+        'wa_id': arg.session_id
+    }
     
-   if result.get('success') is False:
-      raise HookError(result.get('message'))
+    result = frappe.call('frappe_pywce.frappe_pywce.hook.defaults.hook_wrapper', login=True, arg=auth_data)
+
+    # for logout
+    #frappe.call('frappe_pywce.frappe_pywce.hook.defaults.hook_wrapper', login=False, arg={})
     
-   # for logout, call | no need for updating arg.additional_data
-   #frappe.call('frappe_pywce.frappe_pywce.hook.defaults.hook_wrapper', login=False, arg=arg)
-    
-   return arg
+    if result.get('success') is False:
+        arg.template_body = TemplateDynamicBody(render_template_payload={"body": result.get('message'), "action": "Retry"})
+        
+    else:
+        arg.template_body = TemplateDynamicBody(render_template_payload={"body": "Login successful", "action": "Proceed"})
+        
+    return arg
+</code></pre>
+
+<hr>
+
+<h4>Access Frappe / ERPNext</h4>
+<p>You can access erpnext data in hooks too after successful login</p>
+
+<pre><code>
+def hook(arg: HookArg) -> HookArg:
+    invoices = []
+
+    sales_invoices = frappe.db.get_list(
+        "Sales Invoice",
+        fields=["name", "customer", "grand_total"],
+        limit_page_length=10
+    )
+
+    separator = "__________"
+
+    for invoice in sales_invoices:
+        invoices.append("Invoice name: " + invoice["name"])
+        invoices.append("Customer: " + invoice["customer"])
+        invoices.append("Total Amount: " + str(invoice["grand_total"]))
+        invoices.append(separator)
+
+    invoices_text = "\n".join(invoices)
+
+    arg.template_body = TemplateDynamicBody(render_template_payload={"body": invoices_text})
+    return arg
+
 </code></pre>
 `);
 	},

@@ -31,24 +31,6 @@ def get_safe_globals():
         "__builtins__": ALLOWED_BUILTINS
     }
 
-
-def log_incoming_hook_message(arg: HookArg) -> None:
-    """
-    initiate(arg: HookArg)
-
-    A global pre-hook called everytime & before any other hooks are processed.
-
-    Args:
-        arg (HookArg): pass hook argument from engine
-
-    Returns:
-        None: global hooks have no need to return anything
-    """
-    print(f"{'*' * 10} New incoming request arg {'*' * 10}")
-    print(arg)
-    print(f"{'*' * 30}")
-
-
 def frappe_hook_processor(arg: HookArg) -> HookArg:
     """
     initiate(arg: HookArg)
@@ -107,8 +89,7 @@ def get_engine_config() -> Engine:
         session_ttl_min=10,
         
         # optional fields, depends on the example project being run
-        ext_hook_processor=frappe_hook_processor,
-        global_pre_hooks=[log_incoming_hook_message]
+        ext_hook_processor=frappe_hook_processor
     )
 
     return Engine(config=_eng_config)
