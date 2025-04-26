@@ -20,16 +20,32 @@ def get_safe_globals():
         'True': True,
         'False': False,
         'type': type,        # Explicitly allow type if needed
-        'getattr': getattr,  # Explicitly allow getattr if needed
-        'setattr': setattr,  # Explicitly allow setattr if needed
+        'getattr': getattr  # Explicitly allow getattr if needed
     }
 
     pywce_globals = {name: getattr(pywce, name) for name in pywce.__all__}
     
     return {
         **pywce_globals,
+        "hook_arg": getattr(frappe.local, "hook_arg", None),
         "__builtins__": ALLOWED_BUILTINS
     }
+
+
+def on_hook_listener(arg: HookArg) -> None:
+    """Save hook to local
+
+    arg = getattr(frappe.local, "hook_arg", None)
+    
+    Args:
+        arg (HookArg): Hook argument
+    """
+    frappe.local.hook_arg = arg
+    print('[on_hook_listener] Updated hook arg in frappe > local')
+
+def on_client_send_listener(arg: HookArg) -> None:
+    """reset hook_arg to None"""
+    frappe.local.hook_arg = None
 
 def frappe_hook_processor(arg: HookArg) -> HookArg:
     """
@@ -74,7 +90,7 @@ def get_wa_config() -> client.WhatsApp:
         enforce_security=False
     )
 
-    return client.WhatsApp(_wa_config)
+    return client.WhatsApp(_wa_config, on_send_listener=on_client_send_listener)
 
 
 def get_engine_config() -> Engine:
@@ -89,7 +105,8 @@ def get_engine_config() -> Engine:
         session_ttl_min=10,
         
         # optional fields, depends on the example project being run
-        ext_hook_processor=frappe_hook_processor
+        ext_hook_processor=frappe_hook_processor,
+        on_hook_arg=on_hook_listener
     )
 
     return Engine(config=_eng_config)

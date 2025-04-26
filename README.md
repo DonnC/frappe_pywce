@@ -13,7 +13,6 @@ A WhatsApp chatbot engine in frappe powered by pywce
 - [ ] Save chat history
 - [ ] Support doc events
 - [ ] Work with [this frappe whatsapp templates app]()
-- [ ] *Expose session data
 
 ## Setup
 Install app 

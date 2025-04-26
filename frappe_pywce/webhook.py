@@ -1,4 +1,6 @@
 import datetime
+import hashlib
+import hmac
 import json
 
 from frappe_pywce.config import get_engine_config, get_wa_config
@@ -39,6 +41,17 @@ def _check_session_expiry(expiry_str):
         return datetime.datetime.now() > datetime.datetime.fromisoformat(expiry_str)
     except ValueError:
         return True
+
+
+def _verify_webhook_signature(payload: bytes, received_sig: str):
+    if not received_sig:
+        frappe.throw("Missing X-Hub-Signature-256 header", exc=frappe.ValidationError)
+
+    expected_sig = "sha256=" + hmac.new(get_wa_config().config.app_secret.encode("utf-8"), payload, hashlib.sha256).hexdigest()
+
+    if not hmac.compare_digest(expected_sig, received_sig):
+        frappe.log_error(title="Chatbot Webhook Signature")
+        frappe.throw("Invalid webhook signature", exc=frappe.ValidationError)
 
 def _get_authd_user(webhook:dict):
     try:
@@ -111,6 +124,8 @@ def _handle_webhook():
     headers = dict(frappe.request.headers)
 
     normalized_headers = {k.lower(): v for k, v in headers.items()}
+
+    _verify_webhook_signature(payload, headers.get("x-hub-signature-256"))
 
     try:
         payload_dict = json.loads(payload.decode('utf-8'))

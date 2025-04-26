@@ -15,6 +15,9 @@ from pywce import HookArg, SessionConstants, TemplateDynamicBody
 import frappe.auth
 import frappe.utils
 
+session_manager = FrappeRedisSessionManager()
+login_manager = frappe.auth.LoginManager()
+
 def get_name(arg: HookArg) -> HookArg:
     _name = arg.user.name
     arg.session_manager.save(session_id=arg.user.wa_id, key="username", data=_name)
@@ -23,9 +26,6 @@ def get_name(arg: HookArg) -> HookArg:
     return arg
 
 def login_usr(data:dict) -> dict:
-    session_manager = FrappeRedisSessionManager()
-    login_manager = frappe.auth.LoginManager()
-
     success = False
     message = "Failed to process request"
 
@@ -93,6 +93,8 @@ def logout_usr(arg: HookArg) -> HookArg:
     try:
         usr = arg.session_manager.get(arg.session_id, SessionConstants.VALID_AUTH_SESSION).get('usr')
         frappe.auth.LoginManager().logout(user=usr)
+    except Exception as e:
+        frappe.log_error(title="Chatbot Logout")
     finally:
         arg.session_manager.clear(arg.session_id)
         frappe.set_user('Guest')
@@ -101,6 +103,10 @@ def logout_usr(arg: HookArg) -> HookArg:
     
 @frappe.whitelist(allow_guest=True)
 def hook_wrapper(arg: dict, login:bool=False):
+    print('[hook_wrapper] Local hook arg: ', getattr(frappe.local, "hook_arg", None))
+
     if login is True:
         return login_usr(arg)
     logout_usr(arg)
+
+
