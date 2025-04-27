@@ -96,6 +96,8 @@ def get_wa_config() -> client.WhatsApp:
 def get_engine_config() -> Engine:
     docSettings = frappe.get_single("PywceConfig")
 
+    # TODO: move session ttl config to session and not engine config
+
     _eng_config = EngineConfig(
         whatsapp=get_wa_config(),
         storage_manager=FrappeStorageManager(),

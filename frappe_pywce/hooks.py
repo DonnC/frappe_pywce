@@ -248,9 +248,9 @@ def configure_pywce_logging():
 # Authentication and authorization
 # --------------------------------
 
-# auth_hooks = [
-# 	"frappe_pywce.auth.validate"
-# ]
+auth_hooks = [
+	"frappe_pywce.auth.whatsapp_session_hook"
+]
 
 # Automatically update python controller files with type annotations for this app.
 # export_python_type_annotations = True

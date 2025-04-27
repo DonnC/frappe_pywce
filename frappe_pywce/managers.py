@@ -1,8 +1,8 @@
-import re
+import json
 from frappe_pywce.util import get_cachable_template
 from pywce import EngineConstants, ISessionManager, storage, template
 import frappe
-from typing import Dict, Any, List, Type, Union, TypeVar
+from typing import Dict, Any, List, Type, TypeVar
 
 T = TypeVar("T")
 
@@ -47,33 +47,61 @@ class FrappeRedisSessionManager(ISessionManager):
     user data has default expiry set to 10 mins
     global data has default expiry set to 30 mins
     """
+    _global_expiry = 86400
+    _global_key_ = "fpw:global"
 
-    _global_key_ = "pywce_global"
-
-    def __init__(self, val_exp=600, global_exp=1800):
-        """Initialize session manager with default expiry time."""
-        self.expiry = val_exp
-        self.global_expiry = global_exp
+    def __init__(self, ttl=1800):
+        """Initialize session manager with default expiry time.
+        TODO: take the configured ttl in app settings
+        """
+        self.ttl = ttl
 
     def _get_prefixed_key(self, session_id, key=None):
         """Helper to create prefixed cache keys."""
-        k = f"pywce:{session_id}"
+        k = f"fpw:{session_id}"
 
         if key is None:
             return k
         
         return f"{k}:{key}"
+    
+    def _set_data(self, session_id:str=None, session_data:dict=None, is_global=False):
+        """
+            set session data under 1 key for user
+        """
+        if session_data is None: return
+        
+        if is_global:
+            frappe.cache.set_value(
+                key=self._get_prefixed_key(self._global_key_), 
+                val=json.dumps(session_data), 
+                expires_in_sec=self._global_expiry
+            )
+            
+        else:
+            frappe.cache.set_value(
+                key=self._get_prefixed_key(session_id), 
+                val=json.dumps(session_data), 
+                expires_in_sec=self.ttl
+        )
 
-    @staticmethod
-    def set_user_auth_hook():
-        """
-            Helper method to flag user as authenticated
-        """
-        pass
+    def _get_data(self, session_id:str=None, is_global=False) -> dict:
+        raw = frappe.cache.get_value(
+            key=self._get_prefixed_key(self._global_expiry), 
+            expires=True
+        ) if is_global else frappe.cache.get_value(
+            key=self._get_prefixed_key(session_id), 
+            expires=True
+        )
+
+        if raw is None:
+            return {}
+        
+        return json.loads(raw)
 
     @property
     def prop_key(self) -> str:
-        return "pywce_prop_key"
+        return "fpw:props"
 
     def session(self, session_id: str) -> "FrappeRedisSessionManager":
         """Initialize session in Redis if it doesn't exist."""
@@ -81,57 +109,35 @@ class FrappeRedisSessionManager(ISessionManager):
 
     def save(self, session_id: str, key: str, data: Any) -> None:
         """Save a key-value pair into the session."""
-        frappe.cache().set_value(
-            key=self._get_prefixed_key(session_id, key), 
-            val=data,
-            expires_in_sec=self.expiry
-        )
+        d = self._get_data(session_id=session_id)
+        d[key] = data
+        self._set_data(session_id=session_id, session_data=d)
 
     def save_global(self, key: str, data: Any) -> None:
         """Save global key-value pair."""
-        frappe.cache().set_value(
-            key=self._get_prefixed_key(self._global_key_, key), 
-            val=data,
-            expires_in_sec=self.global_expiry
-        )
+        g = self._get_data(is_global=True)
+        g[key] = data
+        self._set_data(session_data=g, is_global=True)
 
-    def get(self, session_id: str, key: str, t: Type[T] = None) -> Union[Any, T]:
+    def get(self, session_id: str, key: str, t: Type[T] = None):
         """Retrieve a specific key from session."""
-        session_data = frappe.cache().get_value(
-            key=self._get_prefixed_key(session_id, key),
-            expires=True
-        )
+        d = self._get_data(session_id=session_id)
+        return d.get(key)
 
-        if session_data is not None:
-            return t(session_data) if t else session_data
-        
-        return None
-
-    def get_global(self, key: str, t: Type[T] = None) -> Union[Any, T]:
+    def get_global(self, key: str, t: Type[T] = None):
         """Retrieve global data."""
-        global_data = frappe.cache().get_value(
-            key=self._get_prefixed_key(self._global_key_, key),
-            expires=True
-        )
-
-        if global_data is not None:
-            return t(global_data) if t else global_data
-        
-        return None
+        g = self._get_data(is_global=True)
+        return g.get(key)
 
     def fetch_all(self, session_id: str, is_global: bool = False) -> Dict[str, Any]:
         """Retrieve all session data."""
-        if is_global:
-            return frappe.cache().get_all(key=self._get_prefixed_key(self._global_key_))
-
-        return frappe.cache().get_all(key=self._get_prefixed_key(session_id))
+        return self._get_data(session_id=session_id, is_global=is_global)
 
     def evict(self, session_id: str, key: str) -> None:
         """Remove a key from session."""
-        frappe.cache().delete_value(
-            keys=[self._get_prefixed_key(session_id, key)],
-            make_keys=True
-        )
+        d = self._get_data(session_id=session_id)
+        d.pop(key, -1)
+        self._set_data(session_id= session_id, session_data=d)
 
     def save_all(self, session_id: str, data: Dict[str, Any]) -> None:
         """Save multiple key-value pairs at once."""
@@ -145,7 +151,9 @@ class FrappeRedisSessionManager(ISessionManager):
 
     def evict_global(self, key: str) -> None:
         """Remove a key from global storage."""
-        self.evict(self._global_key_, key)
+        g = self._get_data(is_global=True)
+        g.pop(key, -1)
+        self._set_data(session_data=g, is_global=True)
 
     def clear(self, session_id: str, retain_keys: List[str] = None) -> None:
         """Clear the entire session.
@@ -183,14 +191,14 @@ class FrappeRedisSessionManager(ISessionManager):
         if prop_key not in current_props:
             return False
         
-        del current_props[prop_key]
+        current_props.pop(prop_key, -1)
         self.save(session_id, self.prop_key, current_props)
         return True
 
-    def get_from_props(self, session_id: str, prop_key: str, t: Type[T] = None) -> Union[Any, T]:
+    def get_from_props(self, session_id: str, prop_key: str, t: Type[T] = None):
         """Retrieve a property from user props."""
         props = self.get_user_props(session_id)
-        return t(props.get(prop_key)) if t and prop_key in props else props.get(prop_key)
+        return props.get(prop_key)
 
     def save_prop(self, session_id: str, prop_key: str, data: Any) -> None:
         """Save a property in user props."""
