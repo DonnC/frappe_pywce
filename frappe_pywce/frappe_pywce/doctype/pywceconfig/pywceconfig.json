@@ -13,9 +13,16 @@
   "app_secret",
   "webhook_token",
   "template_settings_section",
+  "site",
   "initial_stage",
   "column_break_qzil",
-  "process_in_background"
+  "process_in_background",
+  "login_settings_section",
+  "login_enabled",
+  "logged_in_stage_menu",
+  "column_break_hwhz",
+  "wa_id_same_mobile",
+  "expiry"
  ],
  "fields": [
   {
@@ -57,7 +64,7 @@
   {
    "fieldname": "template_settings_section",
    "fieldtype": "Section Break",
-   "label": "Template Settings"
+   "label": "General Settings"
   },
   {
    "fieldname": "initial_stage",
@@ -73,10 +80,55 @@
   },
   {
    "default": "1",
-   "description": "handle every webhook requests in the background<br>\nUsing: <b><i>frappe.enqueue</i></b>",
+   "description": "handle every webhook request in the background",
    "fieldname": "process_in_background",
    "fieldtype": "Check",
    "label": "Handle in background?"
+  },
+  {
+   "default": "10",
+   "description": "In mins",
+   "fieldname": "expiry",
+   "fieldtype": "Int",
+   "label": "Login expire after?",
+   "non_negative": 1
+  },
+  {
+   "default": "1",
+   "description": "On login, ensure wa_id == user account mobile no.",
+   "fieldname": "wa_id_same_mobile",
+   "fieldtype": "Check",
+   "label": "Validate wa_id with user mobile?"
+  },
+  {
+   "fieldname": "site",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Site",
+   "read_only": 1
+  },
+  {
+   "fieldname": "login_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Login Settings"
+  },
+  {
+   "default": "0",
+   "description": "check if chatbot processes user login",
+   "fieldname": "login_enabled",
+   "fieldtype": "Check",
+   "label": "Login enabled?"
+  },
+  {
+   "fieldname": "column_break_hwhz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "logged_in_stage_menu",
+   "fieldtype": "Link",
+   "label": "Logged in stage menu",
+   "mandatory_depends_on": "eval:doc.login_enabled==1;",
+   "options": "Chatbot Template"
   }
  ],
  "grid_page_length": 50,
@@ -84,7 +136,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-04-05 13:12:56.149663",
+ "modified": "2025-04-14 15:59:46.934845",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "PywceConfig",

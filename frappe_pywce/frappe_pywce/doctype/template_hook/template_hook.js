@@ -35,7 +35,7 @@ frappe.ui.form.on("Template Hook", {
 
 <hr>
 
-<h4>Server Script</h4>
+<h4>Server Side Script</h4>
 <p>Server side python functions with template hook business logic. The hook value must be a full dotted path to the server script</p>
 </br>
 Example: Suppose your custom app name is my_app with a structure as below:
@@ -74,6 +74,64 @@ def hook(arg: HookArg) -> HookArg:
     arg.template_body = TemplateDynamicBody(render_template_payload={"name": arg.user.name})
     
     return arg
+</code></pre>
+
+<hr>
+
+<h4>Authentication</h4>
+<p>To perform auth in Editor Scripts, you can do the following</p>
+<p>The app has a helper whitelisted function for this</p>
+
+<pre><code>
+def hook(arg: HookArg) -> HookArg:
+    auth_data = {
+        'usr': arg.session_manager.get_from_props(arg.session_id, 'email'),
+        'pwd': arg.session_manager.get_from_props(arg.session_id, 'pwd'),
+        'wa_id': arg.session_id
+    }
+    
+    result = frappe.call('frappe_pywce.frappe_pywce.hook.defaults.hook_wrapper', login=True, arg=auth_data)
+
+    # for logout
+    #frappe.call('frappe_pywce.frappe_pywce.hook.defaults.hook_wrapper', login=False, arg={})
+    
+    if result.get('success') is False:
+        arg.template_body = TemplateDynamicBody(render_template_payload={"body": result.get('message'), "action": "Retry"})
+        
+    else:
+        arg.template_body = TemplateDynamicBody(render_template_payload={"body": "Login successful", "action": "Proceed"})
+        
+    return arg
+</code></pre>
+
+<hr>
+
+<h4>Access Frappe / ERPNext</h4>
+<p>You can access erpnext data in hooks too after successful login</p>
+
+<pre><code>
+def hook(arg: HookArg) -> HookArg:
+    invoices = []
+
+    sales_invoices = frappe.db.get_list(
+        "Sales Invoice",
+        fields=["name", "customer", "grand_total"],
+        limit_page_length=10
+    )
+
+    separator = "__________"
+
+    for invoice in sales_invoices:
+        invoices.append("Invoice name: " + invoice["name"])
+        invoices.append("Customer: " + invoice["customer"])
+        invoices.append("Total Amount: " + str(invoice["grand_total"]))
+        invoices.append(separator)
+
+    invoices_text = "\n".join(invoices)
+
+    arg.template_body = TemplateDynamicBody(render_template_payload={"body": invoices_text})
+    return arg
+
 </code></pre>
 `);
 	},

@@ -4,12 +4,11 @@ from frappe.utils.safe_exec import safe_exec, is_safe_exec_enabled
 from frappe_pywce.managers import FrappeRedisSessionManager, FrappeStorageManager
 
 import pywce
-from pywce import Engine, EngineConstants, HookService, client, EngineConfig, pywce_logger, HookArg
-
+from pywce import Engine, EngineConstants, HookService, client, EngineConfig, HookArg
 
 def get_safe_globals():
     if is_safe_exec_enabled() is False:
-        raise ValueError("Safe exec is not enabled. Please enable it in your configuration.")
+        frappe.throw("Safe exec is not enabled. Please enable it in your configuration.")
 
     # Add custom library and function references to the globals
     ALLOWED_BUILTINS = {
@@ -20,35 +19,33 @@ def get_safe_globals():
         'None': None,
         'True': True,
         'False': False,
-        'type': type,        # Explicitly allow type if needed
-        'getattr': getattr,  # Explicitly allow getattr if needed
-        'setattr': setattr,  # Explicitly allow setattr if needed
+        'type': type,
+        'getattr': getattr
     }
 
     pywce_globals = {name: getattr(pywce, name) for name in pywce.__all__}
     
     return {
         **pywce_globals,
+        "hook_arg": getattr(frappe.local, "hook_arg", None),
         "__builtins__": ALLOWED_BUILTINS
     }
 
 
-def log_incoming_hook_message(arg: HookArg) -> None:
-    """
-    initiate(arg: HookArg)
+def on_hook_listener(arg: HookArg) -> None:
+    """Save hook to local
 
-    A global pre-hook called everytime & before any other hooks are processed.
-
+    arg = getattr(frappe.local, "hook_arg", None)
+    
     Args:
-        arg (HookArg): pass hook argument from engine
-
-    Returns:
-        None: global hooks have no need to return anything
+        arg (HookArg): Hook argument
     """
-    print(f"{'*' * 10} New incoming request arg {'*' * 10}")
-    print(arg)
-    print(f"{'*' * 30}")
+    frappe.local.hook_arg = arg
+    print('[on_hook_listener] Updated hook arg in frappe > local')
 
+def on_client_send_listener(arg: HookArg) -> None:
+    """reset hook_arg to None"""
+    frappe.local.hook_arg = None
 
 def frappe_hook_processor(arg: HookArg) -> HookArg:
     """
@@ -93,23 +90,24 @@ def get_wa_config() -> client.WhatsApp:
         enforce_security=False
     )
 
-    return client.WhatsApp(_wa_config)
+    return client.WhatsApp(_wa_config, on_send_listener=on_client_send_listener)
 
 
 def get_engine_config() -> Engine:
     docSettings = frappe.get_single("PywceConfig")
+
+    # TODO: move session ttl config to session and not engine config
 
     _eng_config = EngineConfig(
         whatsapp=get_wa_config(),
         storage_manager=FrappeStorageManager(),
         start_template_stage=docSettings.initial_stage,
         session_manager=FrappeRedisSessionManager(),
-        logger=pywce_logger.DefaultPywceLogger(use_print=True),
         session_ttl_min=10,
         
         # optional fields, depends on the example project being run
         ext_hook_processor=frappe_hook_processor,
-        global_pre_hooks=[log_incoming_hook_message]
+        on_hook_arg=on_hook_listener
     )
 
     return Engine(config=_eng_config)

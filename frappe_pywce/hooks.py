@@ -1,26 +1,9 @@
-import logging
-import frappe
-
-
 app_name = "frappe_pywce"
 app_title = "Frappe Pywce"
 app_publisher = "donnc"
 app_description = "A WhatsApp chatbot engine in frappe powered by pywce"
 app_email = "donnclab@gmail.com"
 app_license = "MIT"
-
-def configure_pywce_logging():
-    pywce_logger = logging.getLogger("pywce")
-    frappe_logger = frappe.logger()
-
-    pywce_logger.handlers.clear()
-
-    for handler in frappe_logger.handlers:
-        pywce_logger.addHandler(handler)
-
-    pywce_logger.setLevel(frappe_logger.level)
-    logging.getLogger("pywce").propagate=True
-
 
 # Apps
 # ------------------
@@ -248,9 +231,9 @@ def configure_pywce_logging():
 # Authentication and authorization
 # --------------------------------
 
-# auth_hooks = [
-# 	"frappe_pywce.auth.validate"
-# ]
+auth_hooks = [
+	"frappe_pywce.auth.whatsapp_session_hook"
+]
 
 # Automatically update python controller files with type annotations for this app.
 # export_python_type_annotations = True
@@ -258,7 +241,3 @@ def configure_pywce_logging():
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-
-
-
-configure_pywce_logging()

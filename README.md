@@ -1,5 +1,5 @@
 # Frappe Pywce
-A WhatsApp chatbot engine in frappe powered by pywce
+A WhatsApp chatbot engine in frappe powered by [Pywce](https://github.com/DonnC/pywce)
 
 ![workspace](screenshots/home.png)
 
@@ -8,12 +8,8 @@ A WhatsApp chatbot engine in frappe powered by pywce
 - [x] Doctype driven chatbot
 - [x] Chatbot changes reflect instantly on WhatsApp
 - [x] Improved performance via background processing using `frappe.enqueue(...)`
-- [x] Create template logic using server side scripts or directly on UI
-- [ ] Add default hooks
-- [ ] Save chat history
-- [ ] Support doc events
-- [ ] Work with [this frappe whatsapp templates app]()
-- [ ] *Expose session data
+- [x] Frappe dependent business logic via server side scripts-like approach or directly on UI
+- [x] Support for all features of pywce
 
 ## Setup
 Install app 
@@ -32,8 +28,6 @@ Navigate to `app settings > Configs` to add your whatsapp configs
 
 ### Create templates
 You can add any templates of your choice, example templates below
-
-> Message bodies are the json representation of the supported YAML message templates.
 
 btn
 ![templates](screenshots/btn-template.png)

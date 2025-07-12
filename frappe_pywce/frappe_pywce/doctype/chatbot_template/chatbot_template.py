@@ -17,3 +17,9 @@ class ChatbotTemplate(Document):
                     _("Field 'prop' cannot contain spaces or hyphens. Please use underscores (_) instead."),
                     title=_("Invalid Input")
                 )
+
+        if not self.body:
+            frappe.throw(
+                    _("Template message body is required"),
+                    title=_("Template message")
+                )
