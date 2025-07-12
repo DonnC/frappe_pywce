@@ -4,11 +4,11 @@ from frappe.utils.safe_exec import safe_exec, is_safe_exec_enabled
 from frappe_pywce.managers import FrappeRedisSessionManager, FrappeStorageManager
 
 import pywce
-from pywce import Engine, EngineConstants, HookService, client, EngineConfig, pywce_logger, HookArg
+from pywce import Engine, EngineConstants, HookService, client, EngineConfig, HookArg
 
 def get_safe_globals():
     if is_safe_exec_enabled() is False:
-        raise ValueError("Safe exec is not enabled. Please enable it in your configuration.")
+        frappe.throw("Safe exec is not enabled. Please enable it in your configuration.")
 
     # Add custom library and function references to the globals
     ALLOWED_BUILTINS = {
@@ -19,8 +19,8 @@ def get_safe_globals():
         'None': None,
         'True': True,
         'False': False,
-        'type': type,        # Explicitly allow type if needed
-        'getattr': getattr  # Explicitly allow getattr if needed
+        'type': type,
+        'getattr': getattr
     }
 
     pywce_globals = {name: getattr(pywce, name) for name in pywce.__all__}
@@ -103,7 +103,6 @@ def get_engine_config() -> Engine:
         storage_manager=FrappeStorageManager(),
         start_template_stage=docSettings.initial_stage,
         session_manager=FrappeRedisSessionManager(),
-        logger=pywce_logger.DefaultPywceLogger(use_print=True),
         session_ttl_min=10,
         
         # optional fields, depends on the example project being run

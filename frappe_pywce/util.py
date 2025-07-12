@@ -1,13 +1,10 @@
-from functools import wraps
 import json
 from typing import Optional, Union
 
 import frappe
-from pywce import EngineConstants, TemplateTypeConstants, pywce_logger
+from pywce import EngineConstants, TemplateTypeConstants
 
 from frappe.utils.caching import redis_cache
-
-logger = pywce_logger.DefaultPywceLogger(use_print=True)
 
 def _get_hook(hook:Optional[str]=None):
     if hook is None:

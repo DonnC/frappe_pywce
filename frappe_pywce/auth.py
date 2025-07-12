@@ -1,5 +1,6 @@
 import json
 import frappe
+from frappe.auth import LoginManager
 
 from pywce import SessionConstants
 from frappe_pywce.config import get_engine_config
@@ -32,7 +33,6 @@ def whatsapp_session_hook():
         frappe.local.form_dict["sid"] = auth_data.get("sid")
 
         # Re-bootstrap LoginManager (it will see sid and do make_session(resume=True))
-        from frappe.auth import LoginManager
         frappe.local.login_manager = LoginManager()
 
         print('[whatsapp_session_hook] resume-inject sid success:, <user>: ', frappe.session.user)
