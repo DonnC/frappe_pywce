@@ -25,6 +25,7 @@
   "checks_section",
   "checkpoint",
   "ack",
+  "show_typing_indicator",
   "column_break_wwsg",
   "authenticated",
   "by_pass_session"
@@ -166,12 +167,18 @@
    "fieldtype": "Table",
    "label": "Routes",
    "options": "Chatbot Route"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_typing_indicator",
+   "fieldtype": "Check",
+   "label": "Show Typing Indicator?"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-12 20:23:53.970147",
+ "modified": "2025-07-13 11:56:25.845469",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "Chatbot Template",
@@ -191,6 +198,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "search_fields": "template_name, template_type",
  "show_title_field_in_link": 1,
  "sort_field": "modified",

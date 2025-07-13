@@ -86,8 +86,7 @@ def get_wa_config() -> client.WhatsApp:
         token=docSettings.get_password('access_token'),
         phone_number_id=docSettings.phone_id,
         hub_verification_token=docSettings.webhook_token,
-        app_secret=docSettings.get_password('app_secret'),
-        enforce_security=False
+        app_secret=docSettings.get_password('app_secret')
     )
 
     return client.WhatsApp(_wa_config, on_send_listener=on_client_send_listener)
@@ -96,14 +95,11 @@ def get_wa_config() -> client.WhatsApp:
 def get_engine_config() -> Engine:
     docSettings = frappe.get_single("PywceConfig")
 
-    # TODO: move session ttl config to session and not engine config
-
     _eng_config = EngineConfig(
         whatsapp=get_wa_config(),
         storage_manager=FrappeStorageManager(),
         start_template_stage=docSettings.initial_stage,
         session_manager=FrappeRedisSessionManager(),
-        session_ttl_min=10,
         
         # optional fields, depends on the example project being run
         ext_hook_processor=frappe_hook_processor,

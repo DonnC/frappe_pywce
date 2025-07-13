@@ -56,14 +56,16 @@ def internal_webhook_handler(payload, headers):
         frappe.throw(msg="Site not configured in app settings")
 
     try:
-        frappe.connect(site=site, set_admin_as_user=False)
+        # TODO: Verify if these calls are necessary
+        # frappe.init(site=site)
+        # frappe.connect(set_admin_as_user=False)
+
         get_engine_config().process_webhook(payload, headers)
 
-    except Exception as e:
-        frappe.log_error(title="Chatbot Webhook Handler", message=f"Error handling webhook: {frappe.get_traceback(with_context=True)}")
+    except Exception:
+        frappe.log_error(title="Chatbot Webhook E.Handler")
 
     finally:
-        frappe.db.close()
         frappe.set_user('Guest')
 
 def _handle_webhook():
@@ -72,7 +74,7 @@ def _handle_webhook():
 
     normalized_headers = {k.lower(): v for k, v in headers.items()}
 
-    _verify_webhook_signature(payload, headers.get("x-hub-signature-256"))
+    # _verify_webhook_signature(payload, headers.get("x-hub-signature-256"))
 
     try:
         payload_dict = json.loads(payload.decode('utf-8'))
@@ -83,6 +85,8 @@ def _handle_webhook():
 
     if should_run_in_bg == 1:
         wa_user = get_wa_config().util.get_wa_user(payload_dict)
+
+        print('[webhook] wa_user in background: ', wa_user)
 
         if wa_user is None:
             return "Invalid user"
@@ -96,6 +100,8 @@ def _handle_webhook():
         )
 
     else:
+        print('[webhook] direct processing: ')
+
         internal_webhook_handler(payload=payload_dict, headers=normalized_headers)
 
     return "OK"

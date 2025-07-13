@@ -26,6 +26,8 @@ def whatsapp_session_hook():
         
         session = get_engine_config().config.session_manager
         auth_data = session.get(session_id=wa_user.wa_id, key=SessionConstants.VALID_AUTH_SESSION) or {}
+
+        print('[whatsapp_session_hook] auth_data: ', auth_data)
         
         if auth_data.get("sid") is None: return
 

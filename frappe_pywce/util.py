@@ -25,22 +25,6 @@ def _get_message(kind: str, msg: dict) -> Union[str, dict]:
     return msg
 
 
-# def signature_required_frappe(f):
-#     """Decorator to enforce signature verification for Frappe webhooks."""
-#     @wraps(f)
-#     def decorated_function(*args, **kwargs):
-#         payload = frappe.request.get_data().decode("utf-8")
-#         headers = dict(frappe.request.headers)
-
-#         if not self.verify_webhook_payload(payload, headers):
-#             frappe.logger().critical("Webhook payload signature verification failed")
-#             frappe.throw("Webhook payload verification failed")
-
-#         return f(*args, **kwargs)
-
-#     return decorated_function
-    
-
 def frappe_to_yaml_dict(frappe_dict: dict) -> dict:
     """
     Converts a Frappe doctype dictionary to a YAML-like dictionary representation of pywce template.
@@ -61,6 +45,7 @@ def frappe_to_yaml_dict(frappe_dict: dict) -> dict:
             "checkpoint": frappe_dict.get('checkpoint', 0) == 1,
             "prop": frappe_dict.get('prop'),
             "session": frappe_dict.get('by_pass_session', 0) == 1,
+            "typing": frappe_dict.get('show_typing_indicator', 0) == 1,
             "transient": False,
             "message-id": frappe_dict.get('reply_message_id'),
 
@@ -86,7 +71,7 @@ def frappe_to_yaml_dict(frappe_dict: dict) -> dict:
     return yaml_dict
 
 
-@redis_cache(ttl=180)
+# @redis_cache(ttl=180)
 def get_cachable_template(name) -> dict:
     db_template = frappe.get_doc("Chatbot Template", name)
     db_template_dict = frappe_to_yaml_dict(db_template.as_dict())
