@@ -43,7 +43,7 @@ def on_hook_listener(arg: HookArg) -> None:
     frappe.local.hook_arg = arg
     print('[on_hook_listener] Updated hook arg in frappe > local')
 
-def on_client_send_listener(arg: HookArg) -> None:
+def on_client_send_listener() -> None:
     """reset hook_arg to None"""
     frappe.local.hook_arg = None
 

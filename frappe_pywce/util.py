@@ -25,7 +25,7 @@ def _get_message(kind: str, msg: dict) -> Union[str, dict]:
     return msg
 
 
-def frappe_to_yaml_dict(frappe_dict: dict) -> dict:
+def doctype_as_template(frappe_dict: dict) -> dict:
     """
     Converts a Frappe doctype dictionary to a YAML-like dictionary representation of pywce template.
 
@@ -74,5 +74,5 @@ def frappe_to_yaml_dict(frappe_dict: dict) -> dict:
 # @redis_cache(ttl=180)
 def get_cachable_template(name) -> dict:
     db_template = frappe.get_doc("Chatbot Template", name)
-    db_template_dict = frappe_to_yaml_dict(db_template.as_dict())
+    db_template_dict = doctype_as_template(db_template.as_dict())
     return db_template_dict
