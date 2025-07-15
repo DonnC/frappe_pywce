@@ -40,7 +40,7 @@ frappe.ui.form.on("PywceConfig", {
             const update_existing = values.update_existing;
 
             frappe.call({
-              method: "frappe_pywce.template_importer.import_templates",
+              method: "frappe_pywce.templates_util.import_templates",
               args: {
                 directory_path: directory_path,
                 update_existing: update_existing == 1,
