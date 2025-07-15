@@ -306,7 +306,7 @@ def delete_templates(template_names_to_delete: list):
 
     for template_name in templates_to_delete_set:
         try:
-            frappe.delete_doc("Chatbot Template", template_name, ignore_permissions=True, force=False)
+            frappe.delete_doc("Chatbot Template", template_name, ignore_permissions=True, force=True)
             frappe.db.commit()
             deleted_count += 1
             print(f"Successfully deleted: {template_name}")
@@ -336,16 +336,13 @@ def import_templates(directory_path:str, update_existing=True):
     if not os.path.isdir(directory_path):
         frappe.throw(f"Provided path is not a valid directory: {directory_path}")
 
-    job = frappe.enqueue(
+    frappe.enqueue(
         bg_template_importer,
         queue='long',
-        timeout=1800,
         directory_path=directory_path,
         update_existing=update_existing,
         job_id=job_id
     )
-
-    # msg = bg_template_importer(directory_path, update_existing, job.id)
 
     return {"job_id": job_id, "message": "Templates import started. Check Job Queue for progress."}
 
