@@ -26,13 +26,13 @@ frappe.ui.form.on("PywceConfig", {
               fieldtype: "Data",
               label: __("Directory Path"),
               reqd: 1,
-              description: __("E.g., /home/projects/my-chatbot/templates"),
+              description: __("E.g., /home/projects/chatbot/templates"),
             },
             {
               label: __("Update Existing?"),
               fieldname: "update_existing",
               fieldtype: "Check",
-              default: 1,
+              default: 0,
             },
           ],
           function (values) {

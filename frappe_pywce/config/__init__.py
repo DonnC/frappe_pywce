@@ -1,10 +1,15 @@
 import frappe
+import frappe.utils
 from frappe.utils.safe_exec import safe_exec, is_safe_exec_enabled
 
 from frappe_pywce.managers import FrappeRedisSessionManager, FrappeStorageManager
 
 import pywce
-from pywce import Engine, EngineConstants, HookService, client, EngineConfig, HookArg
+from pywce import Engine, EngineConstants, HookService, client, EngineConfig, HookArg, storage
+
+
+frappe.utils.logger.set_log_level("DEBUG")
+logger = frappe.logger("frappe_pywce", allow_site=True)
 
 def get_safe_globals():
     if is_safe_exec_enabled() is False:
@@ -77,8 +82,6 @@ def frappe_hook_processor(arg: HookArg) -> HookArg:
     
     return HookService.process_hook(hook_script.server_script_path, arg)
     
-
-@frappe.whitelist()
 def get_wa_config() -> client.WhatsApp:
     docSettings = frappe.get_single("PywceConfig")
 
@@ -95,9 +98,25 @@ def get_wa_config() -> client.WhatsApp:
 def get_engine_config() -> Engine:
     docSettings = frappe.get_single("PywceConfig")
 
+    logger.debug("Loading engine configs..")
+
+    # try:
+
+    #     hybrid_storage = storage.YamlJsonStorageManager(
+    #         template_dir='/home/donnc/frappe-bench/apps/frappe_pywce/lib/pywce/example/ehailing/templates',
+    #         trigger_dir='/home/donnc/frappe-bench/apps/frappe_pywce/lib/pywce/example/ehailing/triggers'
+    #     )
+
+    #     logger.debug("Hybrid storage loaded")
+    #     logger.debug("Triggers: %s", hybrid_storage.triggers())
+
+    # except Exception as e:
+    #     logger.error("Failed to load templates: %s", str(e))
+
     _eng_config = EngineConfig(
         whatsapp=get_wa_config(),
         storage_manager=FrappeStorageManager(),
+        # storage_manager=hybrid_storage,
         start_template_stage=docSettings.initial_stage,
         session_manager=FrappeRedisSessionManager(),
         

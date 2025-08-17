@@ -2,9 +2,15 @@ import hashlib
 import hmac
 import json
 
-from frappe_pywce.config import get_engine_config, get_wa_config
 import frappe
+from frappe.auth import LoginManager
 import frappe.utils
+
+
+from frappe_pywce.config import get_engine_config, get_wa_config
+
+frappe.utils.logger.set_log_level("DEBUG")
+logger = frappe.logger("frappe_pywce", allow_site=True)
 
 def _verifier():
     """
@@ -20,7 +26,7 @@ def _verifier():
         from werkzeug.wrappers import Response
         return Response(challenge)
 
-    frappe.throw("Forbidden", exc=frappe.PermissionError)
+    frappe.throw("Webhook verification challenge failed", exc=frappe.PermissionError)
 
 def _verify_webhook_signature(payload: bytes, received_sig: str):
     if not received_sig:
@@ -32,8 +38,7 @@ def _verify_webhook_signature(payload: bytes, received_sig: str):
         frappe.log_error(title="Chatbot Webhook Signature")
         frappe.throw("Invalid webhook signature", exc=frappe.ValidationError)
 
-
-def internal_webhook_handler(payload, headers):
+def internal_webhook_handler(sid, payload, headers):
     """Process webhook data internally
 
     If user is authenticated in the session, get current user and call
@@ -50,23 +55,20 @@ def internal_webhook_handler(payload, headers):
         payload (dict): webhook raw payload data to process
         headers (dict): request headers
     """
-    site = frappe.db.get_single_value("PywceConfig", "site")
-
-    if not site:
-        frappe.throw(msg="Site not configured in app settings")
+    logger.debug('[internal_webhook_handler] sid: %s, payload: %s', sid, payload)
 
     try:
-        # TODO: Verify if these calls are necessary
-        # frappe.init(site=site)
-        # frappe.connect(set_admin_as_user=False)
+        if sid is not None:
+            frappe.local.form_dict["sid"] = sid
+            login_manager = LoginManager()
+            frappe.local.login_manager = login_manager
+
+            logger.debug('[internal_webhook_handler] inject sid success:, <user>: %s', frappe.session.user)
 
         get_engine_config().process_webhook(payload, headers)
 
     except Exception:
         frappe.log_error(title="Chatbot Webhook E.Handler")
-
-    finally:
-        frappe.set_user('Guest')
 
 def _handle_webhook():
     payload = frappe.request.data
@@ -83,26 +85,20 @@ def _handle_webhook():
 
     should_run_in_bg = frappe.db.get_single_value("PywceConfig", "process_in_background")
 
-    if should_run_in_bg == 1:
-        wa_user = get_wa_config().util.get_wa_user(payload_dict)
+    wa_user = get_wa_config().util.get_wa_user(payload_dict)
 
-        print('[webhook] wa_user in background: ', wa_user)
+    if wa_user is None:
+        return "Invalid user"
 
-        if wa_user is None:
-            return "Invalid user"
-
-        frappe.enqueue(
-            internal_webhook_handler,
-            queue="short",
-            payload=payload_dict,
-            headers=normalized_headers,
-            job_id=f"fpw:{wa_user.wa_id}:{wa_user.msg_id}"
-        )
-
-    else:
-        print('[webhook] direct processing: ')
-
-        internal_webhook_handler(payload=payload_dict, headers=normalized_headers)
+    frappe.enqueue(
+        internal_webhook_handler,
+        queue="short",
+        now=should_run_in_bg == 0,
+        sid=frappe.session.sid,
+        payload=payload_dict,
+        headers=normalized_headers,
+        job_id=f"fpw:{wa_user.wa_id}:{wa_user.msg_id}"
+    )
 
     return "OK"
 
@@ -116,6 +112,9 @@ def clear_session():
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 def webhook():
+    print("WEBHOOK REQUEST ")
+    logger.debug('[webhook] request method: %s', frappe.request)
+
     if frappe.request.method == 'GET':
         return _verifier()
     

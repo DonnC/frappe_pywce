@@ -1,6 +1,5 @@
 from frappe_pywce.pywce_logger import setup_pywce_logging_for_frappe
 
-
 app_name = "frappe_pywce"
 app_title = "Frappe Pywce"
 app_publisher = "donnc"

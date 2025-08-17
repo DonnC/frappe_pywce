@@ -37,7 +37,7 @@ def doctype_as_template(frappe_dict: dict) -> dict:
     """
 
     yaml_dict = {
-            'kind': frappe_dict.get('template_type'),
+            'type': frappe_dict.get('template_type'),
 
             # attr
             "ack": frappe_dict.get('ack', 0) == 1,
@@ -64,6 +64,7 @@ def doctype_as_template(frappe_dict: dict) -> dict:
 
     route_dict = {}
     for route in frappe_dict.get('routes', []):
+        # TODO: handle is regex
         _input = route.get('user_input') if route.get('regex', 0) == 0 else f"{EngineConstants.REGEX_PLACEHOLDER}{route.get('user_input')}"
         route_dict[_input] = route.get('template')
 
