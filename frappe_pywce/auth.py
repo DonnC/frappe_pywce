@@ -1,11 +1,10 @@
 from fnmatch import fnmatch
 import json
 import frappe
-import frappe.utils
 from frappe.auth import LoginManager
+import frappe.utils.logger
 
 from pywce import SessionConstants
-
 
 frappe.utils.logger.set_log_level("DEBUG")
 logger = frappe.logger("frappe_pywce", allow_site=True)

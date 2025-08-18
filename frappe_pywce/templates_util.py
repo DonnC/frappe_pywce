@@ -1,11 +1,10 @@
 import frappe
-import frappe.utils
+import frappe.utils.logger
 
 import yaml
 import json
 import os
 import glob
-
 
 from pywce import EngineConstants
 
@@ -90,10 +89,12 @@ def _create_template_doc(template_name: str, template_def:dict):
     if msg is None:
         frappe.throw(frappe._("Template message is missing"))
 
+    logger.debug(f"Creating/updating template: {template_name} with definition: {template_def}")
+
     doc_data = {
         "doctype": TEMPLATE_DOCTYPE,
         "template_name": template_name,
-        "template_type": template_def.get("type"),
+        "template_type": template_def.get("type", template_def.get("kind")),
         "prop": template_def.get("prop"),
         "checkpoint": 1 if bool(template_def.get("checkpoint", False)) else 0, 
         "ack": 1 if bool(template_def.get("ack", False)) else 0,
@@ -118,10 +119,15 @@ def _create_template_doc(template_name: str, template_def:dict):
     else:
         doc_data["body"] = json.dumps(msg, ensure_ascii=False, indent=4)
 
-    frappe.get_doc(doc_data).insert(
+    logger.debug(f"Creating/updating template doc with data: {doc_data}")
+
+    tpl = frappe.get_doc(doc_data)
+    tpl.insert(
         ignore_permissions=True, 
         # ignore_mandatory=True
     )
+
+    logger.debug(f"Template doc {tpl.name} created/updated successfully.")
 
 
 def bg_template_importer(directory_path:str, update_existing, job_id=None):
@@ -308,7 +314,7 @@ def import_templates(directory_path:str, update_existing=True):
 
     frappe.enqueue(
         bg_template_importer,
-        queue='long',
+        queue='short',
         directory_path=directory_path,
         update_existing=update_existing,
         job_id=job_id

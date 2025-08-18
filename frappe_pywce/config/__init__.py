@@ -1,5 +1,5 @@
 import frappe
-import frappe.utils
+import frappe.utils.logger
 from frappe.utils.safe_exec import safe_exec, is_safe_exec_enabled
 
 from frappe_pywce.managers import FrappeRedisSessionManager, FrappeStorageManager
@@ -86,7 +86,8 @@ def get_wa_config() -> client.WhatsApp:
     docSettings = frappe.get_single("PywceConfig")
 
     _wa_config = client.WhatsAppConfig(
-        token=docSettings.get_password('access_token'),
+        # token=docSettings.get_password('access_token'),
+        token=docSettings.access_token,
         phone_number_id=docSettings.phone_id,
         hub_verification_token=docSettings.webhook_token,
         app_secret=docSettings.get_password('app_secret')
@@ -97,8 +98,6 @@ def get_wa_config() -> client.WhatsApp:
 
 def get_engine_config() -> Engine:
     docSettings = frappe.get_single("PywceConfig")
-
-    logger.debug("Loading engine configs..")
 
     # try:
 
@@ -113,16 +112,22 @@ def get_engine_config() -> Engine:
     # except Exception as e:
     #     logger.error("Failed to load templates: %s", str(e))
 
-    _eng_config = EngineConfig(
-        whatsapp=get_wa_config(),
-        storage_manager=FrappeStorageManager(),
-        # storage_manager=hybrid_storage,
-        start_template_stage=docSettings.initial_stage,
-        session_manager=FrappeRedisSessionManager(),
-        
-        # optional fields, depends on the example project being run
-        ext_hook_processor=frappe_hook_processor,
-        on_hook_arg=on_hook_listener
-    )
+    try:
+        _eng_config = EngineConfig(
+            whatsapp=get_wa_config(),
+            storage_manager=FrappeStorageManager(),
+            # storage_manager=hybrid_storage,
+            start_template_stage=docSettings.initial_stage,
+            report_template_stage= docSettings.report_stage or "REPORT",
+            session_manager=FrappeRedisSessionManager(),
+            
+            # optional fields, depends on the example project being run
+            ext_hook_processor=frappe_hook_processor,
+            on_hook_arg=on_hook_listener
+        )
 
-    return Engine(config=_eng_config)
+        return Engine(config=_eng_config)
+
+    except Exception as e:
+        logger.error("Failed to load engine config: %s", str(e))
+        frappe.throw(frappe._("Failed to load engine config: {0}").format(str(e)))

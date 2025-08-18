@@ -15,6 +15,8 @@
   "template_settings_section",
   "initial_stage",
   "process_in_background",
+  "column_break_najv",
+  "report_stage",
   "login_settings_section",
   "login_enabled",
   "logged_in_stage_menu",
@@ -106,6 +108,16 @@
    "label": "Logged in stage menu",
    "mandatory_depends_on": "eval:doc.login_enabled==1;",
    "options": "Chatbot Template"
+  },
+  {
+   "fieldname": "report_stage",
+   "fieldtype": "Link",
+   "label": "Report Stage",
+   "options": "Chatbot Template"
+  },
+  {
+   "fieldname": "column_break_najv",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
@@ -113,7 +125,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-08-17 19:27:59.039216",
+ "modified": "2025-08-18 16:15:40.731540",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "PywceConfig",

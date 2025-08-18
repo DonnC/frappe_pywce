@@ -4,8 +4,7 @@ import json
 
 import frappe
 from frappe.auth import LoginManager
-import frappe.utils
-
+import frappe.utils.logger
 
 from frappe_pywce.config import get_engine_config, get_wa_config
 
@@ -38,7 +37,7 @@ def _verify_webhook_signature(payload: bytes, received_sig: str):
         frappe.log_error(title="Chatbot Webhook Signature")
         frappe.throw("Invalid webhook signature", exc=frappe.ValidationError)
 
-def internal_webhook_handler(sid, payload, headers):
+def internal_webhook_handler(user:str, payload, headers):
     """Process webhook data internally
 
     If user is authenticated in the session, get current user and call
@@ -55,17 +54,10 @@ def internal_webhook_handler(sid, payload, headers):
         payload (dict): webhook raw payload data to process
         headers (dict): request headers
     """
-    logger.debug('[internal_webhook_handler] sid: %s, payload: %s', sid, payload)
 
     try:
-        if sid is not None:
-            frappe.local.form_dict["sid"] = sid
-            login_manager = LoginManager()
-            frappe.local.login_manager = login_manager
-
-            logger.debug('[internal_webhook_handler] inject sid success:, <user>: %s', frappe.session.user)
-
-        get_engine_config().process_webhook(payload, headers)
+        frappe.set_user(user)
+        get_engine_config().process_webhook(payload)
 
     except Exception:
         frappe.log_error(title="Chatbot Webhook E.Handler")
@@ -94,7 +86,7 @@ def _handle_webhook():
         internal_webhook_handler,
         queue="short",
         now=should_run_in_bg == 0,
-        sid=frappe.session.sid,
+        user=frappe.session.user,
         payload=payload_dict,
         headers=normalized_headers,
         job_id=f"fpw:{wa_user.wa_id}:{wa_user.msg_id}"
@@ -112,9 +104,6 @@ def clear_session():
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 def webhook():
-    print("WEBHOOK REQUEST ")
-    logger.debug('[webhook] request method: %s', frappe.request)
-
     if frappe.request.method == 'GET':
         return _verifier()
     

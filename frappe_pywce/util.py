@@ -37,7 +37,7 @@ def doctype_as_template(frappe_dict: dict) -> dict:
     """
 
     yaml_dict = {
-            'type': frappe_dict.get('template_type'),
+            'kind': frappe_dict.get('template_type'),
 
             # attr
             "ack": frappe_dict.get('ack', 0) == 1,

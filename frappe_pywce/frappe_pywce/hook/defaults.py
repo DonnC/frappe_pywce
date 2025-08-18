@@ -2,21 +2,16 @@ import datetime
 
 import frappe
 import frappe.auth
-import frappe.utils
+import frappe.utils.logger
 
 from pywce import HookArg, SessionConstants, TemplateDynamicBody
 from frappe_pywce.managers import FrappeRedisSessionManager
 
+frappe.utils.logger.set_log_level("DEBUG")
+logger = frappe.logger("frappe_pywce", allow_site=True)
+
 # TODO: use the initialized manager in engine_config
 session_manager = FrappeRedisSessionManager()
-
-def get_name(arg: HookArg) -> HookArg:
-    _name = arg.user.name
-    session_manager.save(session_id=arg.user.wa_id, key="username", data=_name)
-    arg.template_body = TemplateDynamicBody(render_template_payload={"name": _name})
-    
-    return arg
-
 
 def login_handler(session_id:str, email:str, password:str) -> tuple:
     """
@@ -38,9 +33,9 @@ def login_handler(session_id:str, email:str, password:str) -> tuple:
         time_delta = datetime.timedelta(minutes=login_duration_min)
         future_datetime_utc = current_datetime_utc + time_delta
         login_expiry = future_datetime_utc.isoformat()
-        user_mobile = frappe.db.get_value("User", email, "mobile_no")
 
         if frappe.db.get_single_value("PywceConfig", "wa_id_same_mobile") == 1:
+            user_mobile = frappe.db.get_value("User", email, "mobile_no")
             if user_mobile is None:
                 return False, "Mobile number not linked to account"
 
@@ -66,7 +61,7 @@ def login_handler(session_id:str, email:str, password:str) -> tuple:
         return True, "Login successful"
     
     except frappe.AuthenticationError:
-        frappe.log_error(frappe.get_traceback(), "[pywce] Login AuthError")
+        frappe.log_error(title="[pywce] Login AuthError")
         if frappe.local.response and "message" in frappe.local.response:
             message = frappe.local.response["message"]
         else:
@@ -74,7 +69,7 @@ def login_handler(session_id:str, email:str, password:str) -> tuple:
         return False, message
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), "[pywce] Unexpected Login Error")
+        frappe.log_error(title="[pywce] Unexpected Login Error")
 
     return False, "Failed to process login, check your details and try again"
 
