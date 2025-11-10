@@ -247,4 +247,21 @@ auth_hooks = [
 # }
 
 
+website_route_rules = [
+    # Emulator Routes
+    {"from_route": "/emulator", "to_route": "emulator.html"},
+    {"from_route": "/emulator/<path:app_path>", "to_route": "emulator.html"},
+    
+    # Builder Routes
+    {"from_route": "/builder", "to_route": "builder.html"},
+    {"from_route": "/builder/<path:app_path>", "to_route": "builder.html"},
+]
+
+# This hook tells `bench build` to run our Python build script
+build_hooks = {
+    "frontend": [
+        "frappe_pywce.build.build_frontend_apps"
+    ]
+}
+
 setup_pywce_logging_for_frappe()

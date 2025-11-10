@@ -26,37 +26,34 @@ Navigate to `app settings > Configs` to add your whatsapp configs
 
 ![configs](screenshots/config.png)
 
-### Create templates
-You can add any templates of your choice, example templates below
+### Web UIs
+One-Time Setup
 
-btn
-![templates](screenshots/btn-template.png)
+```bash
+$ cd apps/frappe-pywce
 
-text
-![templates](screenshots/text-template.png)
+$ npm run install-all
+```
 
-### Create triggers
-Create your conversation starters or triggers. These enable you to listen to specific user input which results in showing user a specific template
+Development (All apps + bridge)
 
-![trigger](screenshots/trigger.png)
+Terminal 1: `bench start`
 
-### Create business logic
-To define business logic on a template, you create a hook.
-> E.g fetch a user sales invoices when they request for one.
+Terminal 2: (from apps/frappe-pywce/) `npm run dev`
 
-A hook is defined as either a editor script (in the desk ui like creating frappe server scripts) or as server side scripts (on the server).
+Access:
+ Emulator: http://localhost:8080
+ Builder:  http://localhost:8081
 
-> All hooks takes a [Hook Arg](https://docs.page/donnc/wce/common/hooks/introduction) object as a parameter
+Production Build
 
-#### Editor Script
-*All editor scripts should have a single function named **hook***
-![hook](screenshots/editor-script-hook.png)
+Just run: `bench build --app frappe-pywce`
 
+This will automatically trigger `build.py`, which in turn runs yarn build in both app folders, creating the public/ assets and the www/ HTML files.
 
-#### Server side script
-
-Add a dotted path to your server side script
-![hook-server](screenshots/hook-server-script.png)
+Access:
+ Emulator: http://your-frappe-site.com/emulator
+ Builder:  http://your-frappe-site.com/builder
 
 ## Documentation
 

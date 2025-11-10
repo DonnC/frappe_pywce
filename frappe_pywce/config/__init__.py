@@ -3,6 +3,7 @@ import frappe.utils.logger
 from frappe.utils.safe_exec import safe_exec, is_safe_exec_enabled
 
 from frappe_pywce.managers import FrappeRedisSessionManager, FrappeStorageManager
+from frappe_pywce.util import frappe_recursive_renderer
 
 import pywce
 from pywce import Engine, EngineConstants, HookService, client, EngineConfig, HookArg, storage
@@ -120,6 +121,7 @@ def get_engine_config() -> Engine:
             start_template_stage=docSettings.initial_stage,
             report_template_stage= docSettings.report_stage or "REPORT",
             session_manager=FrappeRedisSessionManager(),
+            ext_renderer=frappe_recursive_renderer,
             
             # optional fields, depends on the example project being run
             ext_hook_processor=frappe_hook_processor,
