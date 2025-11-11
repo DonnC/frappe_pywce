@@ -40,6 +40,7 @@ export interface TemplateSettings {
   isStart?: boolean;
   isReport?: boolean;
   trigger?: string;
+  react?: string;
 }
 
 export interface InteractiveMessage {

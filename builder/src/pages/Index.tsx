@@ -336,28 +336,6 @@ const Index = () => {
     [setNodes, setEdges, saveToHistory, edgeType]
   );
 
-  const addSubflow = useCallback(() => {
-    const id = `subflow-${Date.now()}`;
-    const newNode: Node = {
-      id,
-      type: 'subflow',
-      position: { x: Math.random() * 500, y: Math.random() * 500 },
-      data: {
-        id,
-        name: `Subflow ${nodes.filter(n => n.type === 'subflow').length + 1}`,
-        childCount: 0,
-      },
-      style: {
-        width: 300,
-        height: 200,
-      },
-    };
-    
-    setNodes((nds) => [...nds, newNode]);
-    saveToHistory();
-    toast.success('Added subflow group');
-  }, [nodes, setNodes, saveToHistory]);
-
   const autoLayout = useCallback(() => {
     // Simple auto-layout algorithm
     const layoutedNodes = nodes.map((node, index) => ({
@@ -399,6 +377,24 @@ const Index = () => {
       version: '1.0',
     };
     return JSON.stringify(flow, null, 2);
+  };
+
+  const saveCurrentFlowJson = () => {
+    const flow: ChatbotFlow = {
+      templates: nodes.map((node) => ({
+        ...node.data,
+        position: node.position,
+      })),
+      version: '1.0',
+    };
+    const flowJson = JSON.stringify(flow, null, 2);
+
+    // TODO: save back to doctype field
+  };
+
+  const previewCurrentFlowJson = () => {
+
+    // TODO: check if test is enabled and navigate to emulator screen
   };
 
   return (
@@ -453,10 +449,6 @@ const Index = () => {
           />
 
           <div className="absolute bottom-4 right-4 z-10 flex gap-2">
-            <Button onClick={addSubflow} variant="secondary">
-              <FolderPlus className="h-4 w-4 mr-2" />
-              Add Subflow
-            </Button>
             <Button onClick={() => setShowJsonDialog(true)}>
               <Code className="h-4 w-4 mr-2" />
               Show Flow JSON

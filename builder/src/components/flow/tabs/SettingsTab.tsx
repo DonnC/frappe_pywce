@@ -164,6 +164,20 @@ export const SettingsTab = ({ template, onUpdate }: SettingsTabProps) => {
             Last message ID to tag on reply
           </p>
         </div>
+
+        <div>
+          <Label>Reaction Emoji</Label>
+          <Input
+            value={settings.react || ''}
+            onChange={(e) => updateSetting('react', e.target.value)}
+            placeholder="e.g., 👍 ❤️ 😊"
+            className="text-2xl"
+            maxLength={2}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            WhatsApp reaction emoji to send with this message
+          </p>
+        </div>
       </div>
     </div>
   );

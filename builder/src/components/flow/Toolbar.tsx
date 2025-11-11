@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { 
   Undo2, Redo2, Maximize, Download, Upload, Plus, 
-  LayoutGrid, Ruler 
+  LayoutGrid, Ruler, Save, Eye
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -139,6 +139,34 @@ export const Toolbar = ({
 
       <Button variant="outline" size="sm" onClick={onExport} title="Export">
         <Download className="h-4 w-4" />
+      </Button>
+
+      <div className="h-8 w-px bg-border" />
+
+      <Button 
+        variant="default" 
+        size="sm" 
+        onClick={() => {
+          // TODO: Add save logic here
+          console.log('Save clicked');
+        }}
+        title="Save"
+      >
+        <Save className="h-4 w-4 mr-2" />
+        Save
+      </Button>
+
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={() => {
+          // TODO: Add local preview logic here
+          console.log('Local Preview clicked');
+        }}
+        title="Local Preview"
+      >
+        <Eye className="h-4 w-4 mr-2" />
+        Local Preview
       </Button>
     </div>
   );

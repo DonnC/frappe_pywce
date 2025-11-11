@@ -1,6 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { ChatbotTemplate, HookConfig, HookType } from '@/types/chatbot';
 import * as React from 'react';
 import { 
@@ -8,7 +9,8 @@ import {
   MailCheck, 
   Send, 
   Shield, 
-  GitBranch
+  GitBranch,
+  Wand2
 } from 'lucide-react';
 
 interface HooksTabProps {
@@ -154,7 +156,26 @@ export const HooksTab = ({ template, onUpdate }: HooksTabProps) => {
       })}
 
       <div className="space-y-3 pt-4 border-t">
-        <Label className="text-sm font-semibold">Hook Parameters (JSON)</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-semibold">Hook Parameters (JSON)</Label>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              try {
+                const parsed = JSON.parse(paramsValue);
+                const formatted = JSON.stringify(parsed, null, 2);
+                setParamsValue(formatted);
+              } catch {
+                // Invalid JSON, don't format
+              }
+            }}
+            title="Format JSON"
+          >
+            <Wand2 className="h-3 w-3 mr-1" />
+            Format
+          </Button>
+        </div>
         <Textarea
           value={paramsValue}
           onChange={(e) => {

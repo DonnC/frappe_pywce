@@ -91,7 +91,10 @@ def get_wa_config() -> client.WhatsApp:
         token=docSettings.access_token,
         phone_number_id=docSettings.phone_id,
         hub_verification_token=docSettings.webhook_token,
-        app_secret=docSettings.get_password('app_secret')
+        app_secret=docSettings.get_password('app_secret'),
+
+        use_emulator=True,
+        emulator_url="http://localhost:3001/send-to-emulator"
     )
 
     return client.WhatsApp(_wa_config, on_send_listener=on_client_send_listener)
@@ -100,28 +103,14 @@ def get_wa_config() -> client.WhatsApp:
 def get_engine_config() -> Engine:
     docSettings = frappe.get_single("PywceConfig")
 
-    # try:
-
-    #     hybrid_storage = storage.YamlJsonStorageManager(
-    #         template_dir='/home/donnc/frappe-bench/apps/frappe_pywce/lib/pywce/example/ehailing/templates',
-    #         trigger_dir='/home/donnc/frappe-bench/apps/frappe_pywce/lib/pywce/example/ehailing/triggers'
-    #     )
-
-    #     logger.debug("Hybrid storage loaded")
-    #     logger.debug("Triggers: %s", hybrid_storage.triggers())
-
-    # except Exception as e:
-    #     logger.error("Failed to load templates: %s", str(e))
-
     try:
         _eng_config = EngineConfig(
             whatsapp=get_wa_config(),
             storage_manager=FrappeStorageManager(),
-            # storage_manager=hybrid_storage,
             start_template_stage=docSettings.initial_stage,
             report_template_stage= docSettings.report_stage or "REPORT",
             session_manager=FrappeRedisSessionManager(),
-            ext_renderer=frappe_recursive_renderer,
+            external_renderer=frappe_recursive_renderer,
             
             # optional fields, depends on the example project being run
             ext_hook_processor=frappe_hook_processor,

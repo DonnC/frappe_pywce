@@ -3,107 +3,169 @@
 export type MessageDirection = 'in' | 'out';
 
 export interface TextPayload {
-    body: string;
+  body: string;
 }
 
 export interface TextPreviewPayload {
-    body: string;
-    preview: string;
+  body: string;
+  preview: string;
+}
+
+export interface ImagePayload {
+  link: string;
+  caption?: string;
+}
+
+export interface VideoPayload {
+  link: string;
+  caption?: string;
+}
+
+export interface DocumentPayload {
+  link: string;
+  filename: string;
+  caption?: string;
 }
 
 export interface LocationPayload {
-    latitude: number;
-    longitude: number;
-    name: string;
-    address: string;
+  latitude: number;
+  longitude: number;
+  name: string;
+  address?: string;
+}
+
+export interface InteractiveLocationRequestPayload {
+  header?: string;
+  body: string;
+  footer?: string;
 }
 
 export interface Button {
-    id: string;
-    title: string;
+  id: string;
+  title: string;
 }
 
 export interface InteractiveButtonPayload {
-    header?: string;
-    body: string;
-    footer?: string;
-    buttons: Button[];
+  header?: string;
+  body: string;
+  footer?: string;
+  buttons: Button[];
 }
 
 export interface ListRow {
-    id: string;
-    title: string;
-    description?: string;
+  id: string;
+  title: string;
+  description?: string;
 }
 
 export interface ListSection {
-    title?: string;
-    rows: ListRow[];
+  title?: string;
+  rows: ListRow[];
 }
 
 export interface InteractiveListPayload {
-    header?: string;
-    body: string;
-    footer?: string;
-    buttonText: string;
-    sections: ListSection[];
+  header?: string;
+  body: string;
+  footer?: string;
+  buttonText: string;
+  sections: ListSection[];
 }
 
 export interface InteractiveCTAPayload {
-    header?: string;
-    body: string;
-    footer?: string;
-    displayText: string;
-    url: string;
+  header?: string;
+  body: string;
+  footer?: string;
+  displayText: string;
+  url: string;
 }
 
-export type MessageType =
-    | 'text'
-    | 'text_preview'
-    | 'location'
-    | 'interactive_button'
-    | 'interactive_list'
-    | 'interactive_cta';
+export type MessageType = 
+  | 'text' 
+  | 'text_preview' 
+  | 'image'
+  | 'video'
+  | 'document'
+  | 'location' 
+  | 'interactive_button' 
+  | 'interactive_list' 
+  | 'interactive_cta'
+  | 'interactive_location_request';
 
 export interface SimpleUIMessage {
-    id: string;
-    type: MessageType;
-    payload: TextPayload | TextPreviewPayload | LocationPayload | InteractiveButtonPayload | InteractiveListPayload | InteractiveCTAPayload;
+  id: string;
+  type: MessageType;
+  payload: TextPayload | TextPreviewPayload | ImagePayload | VideoPayload | DocumentPayload | LocationPayload | InteractiveButtonPayload | InteractiveListPayload | InteractiveCTAPayload | InteractiveLocationRequestPayload;
 }
 
 export interface ChatMessage {
-    id: string;
-    direction: MessageDirection;
-    data: SimpleUIMessage;
-    timestamp: Date;
+  id: string;
+  direction: MessageDirection;
+  data: SimpleUIMessage;
+  timestamp: Date;
 }
 
 // UI Reply Types
 
 export interface TextReply {
-    type: 'text';
-    payload: {
-        body: string;
-    };
+  type: 'text';
+  payload: {
+    body: string;
+  };
 }
 
 export interface ButtonReply {
-    type: 'button_reply';
-    contextMessageId: string;
-    payload: {
-        id: string;
-        title: string;
-    };
+  type: 'button_reply';
+  contextMessageId: string;
+  payload: {
+    id: string;
+    title: string;
+  };
 }
 
 export interface ListReply {
-    type: 'list_reply';
-    contextMessageId: string;
-    payload: {
-        id: string;
-        title: string;
-        description?: string;
-    };
+  type: 'list_reply';
+  contextMessageId: string;
+  payload: {
+    id: string;
+    title: string;
+    description?: string;
+  };
 }
 
-export type UIReply = TextReply | ButtonReply | ListReply;
+export interface LocationReply {
+  type: 'location';
+  contextMessageId?: string;
+  payload: {
+    latitude: number;
+    longitude: number;
+    name: string;
+    address?: string;
+  };
+}
+
+export interface ImageReply {
+  type: 'image';
+  payload: {
+    link: string;
+    caption?: string;
+  };
+}
+
+export interface VideoReply {
+  type: 'video';
+  payload: {
+    link: string;
+    caption?: string;
+  };
+}
+
+export interface DocumentReply {
+  type: 'document';
+  payload: {
+    link: string;
+    filename: string;
+    caption?: string;
+  };
+}
+
+export type UIReply = TextReply | ButtonReply | ListReply | LocationReply | ImageReply | VideoReply | DocumentReply;

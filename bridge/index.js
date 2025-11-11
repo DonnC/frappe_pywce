@@ -17,6 +17,7 @@ const io = new Server(server, {
 });
 
 // CONFIGURATION: Change this to your bot's webhook URL
+// simplex.local:8000
 const BOT_WEBHOOK_URL = process.env.BOT_WEBHOOK_URL || "http://localhost:8000/api/method/frappe_pywce.webhook.webhook";
 console.log(`Forwarding replies to: ${BOT_WEBHOOK_URL}`);
 

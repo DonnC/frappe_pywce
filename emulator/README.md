@@ -195,7 +195,7 @@ src/
 │       ├── ButtonMessage.tsx
 │       ├── ListMessage.tsx
 │       ├── CtaMessage.tsx
-│       └── LocationMessage.tsx
+│       └── xxx.tsx
 ├── context/
 │   └── SocketProvider.tsx       # Socket.io connection management
 ├── types/
