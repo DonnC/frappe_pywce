@@ -1,0 +1,19 @@
+{
+  "name": "emulator-bridge",
+  "version": "1.0.0",
+  "description": "Bridge server that translates WhatsApp API payloads",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": ["whatsapp", "wce", "whatsapp-api", "webhook"],
+  "author": "donnclab",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1"
+  }
+}

@@ -1,7 +1,9 @@
+from frappe_pywce.pywce_logger import setup_pywce_logging_for_frappe
+
 app_name = "frappe_pywce"
 app_title = "Frappe Pywce"
 app_publisher = "donnc"
-app_description = "A WhatsApp chatbot engine in frappe powered by pywce"
+app_description = "Create complete WhatsApp ChatBots in frappe powered by pywce"
 app_email = "donnclab@gmail.com"
 app_license = "MIT"
 
@@ -231,6 +233,8 @@ app_license = "MIT"
 # Authentication and authorization
 # --------------------------------
 
+clear_cache = "frappe_pywce.webhook.clear_session"
+
 auth_hooks = [
 	"frappe_pywce.auth.whatsapp_session_hook"
 ]
@@ -241,3 +245,16 @@ auth_hooks = [
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+
+
+website_router_rules = [
+    # Emulator Routes
+    {"from_route": "/emulator", "to_route": "emulator"},
+    {"from_route": "/emulator/<path:app_path>", "to_route": "emulator"},
+    
+    # Builder Routes
+    {"from_route": "/builder", "to_route": "builder"},
+    {"from_route": "/builder/<path:app_path>", "to_route": "builder"},
+]
+
+setup_pywce_logging_for_frappe()

@@ -1,0 +1,27 @@
+{
+  "name": "frappe_pywce",
+  "version": "1.0.0",
+  "description": "Pywce web UIs",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build": "cd emulator && yarn install && yarn build && cd ../builder && yarn install && yarn build",
+    "postinstall": "cd emulator && yarn install && cd ../builder && yarn install && cd ../bridge && npm install",
+    "dev": "concurrently \"npm:dev:emulator\" \"npm:dev:builder\" \"npm:dev:bridge\"",
+    "dev:emulator": "cd emulator && yarn dev",
+    "dev:builder": "cd builder && yarn dev",
+    "dev:bridge": "node --watch bridge/index.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "pywce",
+    "frappe",
+    "whatsapp",
+    "web",
+    "ui"
+  ],
+  "author": "DonnC <github.com/DonnC>",
+  "license": "ISC"
+}

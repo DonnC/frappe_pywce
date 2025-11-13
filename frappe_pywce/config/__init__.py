@@ -1,36 +1,23 @@
 import frappe
-from frappe.utils.safe_exec import safe_exec, is_safe_exec_enabled
+import frappe.utils.logger
 
 from frappe_pywce.managers import FrappeRedisSessionManager, FrappeStorageManager
+from frappe_pywce.util import frappe_recursive_renderer
 
-import pywce
-from pywce import Engine, EngineConstants, HookService, client, EngineConfig, HookArg
+from pywce import Engine, client, EngineConfig, HookArg
 
-def get_safe_globals():
-    if is_safe_exec_enabled() is False:
-        frappe.throw("Safe exec is not enabled. Please enable it in your configuration.")
 
-    # Add custom library and function references to the globals
-    ALLOWED_BUILTINS = {
-        'print': print,
-        'len': len,
-        'str': str,
-        'bool': bool,
-        'None': None,
-        'True': True,
-        'False': False,
-        'type': type,
-        'getattr': getattr
-    }
+frappe.utils.logger.set_log_level("DEBUG")
+logger = frappe.logger("frappe_pywce", allow_site=True)
 
-    pywce_globals = {name: getattr(pywce, name) for name in pywce.__all__}
-    
-    return {
-        **pywce_globals,
-        "hook_arg": getattr(frappe.local, "hook_arg", None),
-        "__builtins__": ALLOWED_BUILTINS
-    }
-
+def bot_settings():
+    """Fetch Bot Settings from Frappe Doctype 'ChatBot Config'"""
+    try:
+        settings = frappe.get_single("ChatBot Config")
+        return settings
+    except Exception as e:
+        logger.error("Failed to fetch Bot Settings: %s", str(e))
+        frappe.throw(frappe._("Failed to fetch Bot Settings: {0}").format(str(e)))
 
 def on_hook_listener(arg: HookArg) -> None:
     """Save hook to local
@@ -43,71 +30,44 @@ def on_hook_listener(arg: HookArg) -> None:
     frappe.local.hook_arg = arg
     print('[on_hook_listener] Updated hook arg in frappe > local')
 
-def on_client_send_listener(arg: HookArg) -> None:
+def on_client_send_listener() -> None:
     """reset hook_arg to None"""
     frappe.local.hook_arg = None
 
-def frappe_hook_processor(arg: HookArg) -> HookArg:
-    """
-    initiate(arg: HookArg)
 
-    An external hook processor, runs frappe server scripts as hooks
-
-    Args:
-        arg (HookArg): pass hook argument from engine
-
-    Returns:
-        arg: updated hook arg
-    """
-    hook_name = arg.hook.replace(EngineConstants.EXT_HOOK_PROCESSOR_PLACEHOLDER, "").strip()
-    hook_script = frappe.get_doc("Template Hook", hook_name)
-
-    if hook_script.hook_type == 'Editor Script':
-        exec_globals, _locals = safe_exec(hook_script.script, get_safe_globals(), {})
-
-        if 'hook' in _locals:
-            fx = _locals.get('hook')
-
-            if fx is None:
-                raise ValueError("Hook function is None") 
-            
-            return fx(arg) 
-        
-        raise ValueError("No hook function defined")
-    
-    return HookService.process_hook(hook_script.server_script_path, arg)
-    
-
-@frappe.whitelist()
 def get_wa_config() -> client.WhatsApp:
-    docSettings = frappe.get_single("PywceConfig")
+    settings = bot_settings()
 
     _wa_config = client.WhatsAppConfig(
-        token=docSettings.get_password('access_token'),
-        phone_number_id=docSettings.phone_id,
-        hub_verification_token=docSettings.webhook_token,
-        app_secret=docSettings.get_password('app_secret'),
-        enforce_security=False
+        token=settings.access_token,
+        phone_number_id=settings.phone_id,
+        hub_verification_token=settings.webhook_token,
+        app_secret=settings.get_password('app_secret'),
+
+        use_emulator=settings.env == "local",
+        emulator_url="http://localhost:3001/send-to-emulator"
     )
 
     return client.WhatsApp(_wa_config, on_send_listener=on_client_send_listener)
 
 
 def get_engine_config() -> Engine:
-    docSettings = frappe.get_single("PywceConfig")
+    storage_manager = FrappeStorageManager()
 
-    # TODO: move session ttl config to session and not engine config
+    try:
+        _eng_config = EngineConfig(
+            whatsapp=get_wa_config(),
+            storage_manager=storage_manager,
+            start_template_stage=storage_manager.START_MENU,
+            report_template_stage=storage_manager.REPORT_MENU,
+            session_manager=FrappeRedisSessionManager(),
+            external_renderer=frappe_recursive_renderer,
+            
+            on_hook_arg=on_hook_listener
+        )
 
-    _eng_config = EngineConfig(
-        whatsapp=get_wa_config(),
-        storage_manager=FrappeStorageManager(),
-        start_template_stage=docSettings.initial_stage,
-        session_manager=FrappeRedisSessionManager(),
-        session_ttl_min=10,
-        
-        # optional fields, depends on the example project being run
-        ext_hook_processor=frappe_hook_processor,
-        on_hook_arg=on_hook_listener
-    )
+        return Engine(config=_eng_config)
 
-    return Engine(config=_eng_config)
+    except Exception as e:
+        logger.error("Failed to load engine config: %s", str(e))
+        frappe.throw(frappe._("Failed to load engine config: {0}").format(str(e)))
