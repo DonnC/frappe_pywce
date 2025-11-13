@@ -21,7 +21,6 @@
   "login_settings_section",
   "login_enabled",
   "column_break_hwhz",
-  "wa_id_same_mobile",
   "validate_webhook_payload",
   "flow_builder_settings_section",
   "flow_json"
@@ -73,13 +72,6 @@
    "fieldname": "process_in_background",
    "fieldtype": "Check",
    "label": "Handle in background?"
-  },
-  {
-   "default": "1",
-   "description": "On login, ensure wa_id == user account mobile no.",
-   "fieldname": "wa_id_same_mobile",
-   "fieldtype": "Check",
-   "label": "Validate wa_id with user mobile?"
   },
   {
    "fieldname": "login_settings_section",
@@ -152,7 +144,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-11-12 11:52:34.249914",
+ "modified": "2025-11-13 10:40:20.696323",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "ChatBot Config",

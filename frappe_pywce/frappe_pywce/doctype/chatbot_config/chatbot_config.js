@@ -16,23 +16,25 @@ frappe.ui.form.on("ChatBot Config", {
       frm.call({
         method: "frappe_pywce.webhook.clear_session",
         callback: function (r) {
-          frappe.msgprint({
-            title: __("Cache"),
-            indicator: "green",
-            message: __("Chatbot session cache cleared!"),
-          });
+          frappe.show_alert("Cache Cleared");
         },
       });
     });
 
-    frm.add_custom_button(__("Open Builder"), function () {
-        window.open(`/builder`, '_blank');
-
-        // // Button to open the emulator
-        // frm.add_custom_button(__('Preview'), () => {
-        //     window.open('/emulator', '_blank');
-        // });
-
+    frm.add_custom_button(__("Open Studio"), function () {
+      window.open(`/bot/studio`, "_blank");
     });
+  },
+
+  btn_launch_emulator: function (frm) {
+    frappe.warn(
+      "Launch local Bot emulator",
+      "Ensure you started the dev server with `yarn dev` in the app folder",
+      () => {
+        window.open("/bot/emulator", "_blank");
+      },
+      "Continue",
+      true
+    );
   },
 });
