@@ -42,16 +42,7 @@ def get_engine_config() -> Engine:
     try:
         settings = bot_settings()
         storage_manager = FrappeStorageManager(settings.flow_json)
-
-        print('----- STORAGE MANAGER INITIALIZED -------------')
-        print(storage_manager)
-        print('----------------------------------------')
-
         wa = get_wa_config(settings)
-
-        print('----- WHATSAPP CONFIG LOADED -------------')
-        print(wa)
-        print('----------------------------------------')
 
         _eng_config = EngineConfig(
             whatsapp=wa,
@@ -60,16 +51,11 @@ def get_engine_config() -> Engine:
             report_template_stage=storage_manager.REPORT_MENU,
             session_manager=FrappeRedisSessionManager(),
             external_renderer=frappe_recursive_renderer,
-            
             on_hook_arg=on_hook_listener
         )
-
-        print('----- ENGINE CONFIG LOADED -------------')
-        print(_eng_config)
-        print('----------------------------------------')
 
         return Engine(config=_eng_config)
 
     except Exception as e:
-        logger.error("Failed to load engine config: %s", str(e))
-        frappe.throw(frappe._("Failed to load engine config: {0}").format(str(e)))
+        logger.error("Failed to load engine config", exc_info=True)
+        frappe.throw("Failed to load engine config", exc=e)

@@ -16,3 +16,4 @@ frappe_pywce/www/*.html
 frappe_pywce/public/studio/
 frappe_pywce/public/builder/
 frappe_pywce/public/emulator/
+lib/pywce/

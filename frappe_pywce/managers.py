@@ -28,33 +28,22 @@ class FrappeStorageManager(storage.IStorageManager):
     
     def __init__(self, flow_json):
         self.flow_json = flow_json
-        self.cache_key = create_cache_key("smanager:flow_templates")
         self._ensure_templates_loaded()
     
-    def _load_templates_from_cache_or_db(self) -> Dict:
-        cached_templates = frappe.cache().get(self.cache_key)
-        if cached_templates:
-            return cached_templates
-        
+    # might add caching
+    def _load_templates_from_db(self):    
         try:
             if not self.flow_json:
-                raise Exception(f"Flow '{self.flow_name}' not found or is empty.")
+                raise Exception(f"No flow json found or is empty.")
             
             ui_translator = VisualTranslator()
             self._TEMPLATES, self._TRIGGERS = ui_translator.translate(self.flow_json)
-
             self.START_MENU = ui_translator.START_MENU
             self.REPORT_MENU = ui_translator.REPORT_MENU
 
-            frappe.cache().set(self.cache_key, self._TEMPLATES)
-
-            print('----- TEMPLATES LOADED FROM STUDIO DB -------------')
-            print("TEMPLATES: ", self._TEMPLATES)
-
         except Exception as e:
-            frappe.log_error(str(e), f"FrappeStorageManager Load Error")
+            frappe.log_error(title=f"FrappeStorageManager Load Error")
             self._TEMPLATES = {}
-            print(f"Error loading templates: {e}")
 
     def _ensure_templates_loaded(self):
         """
@@ -62,14 +51,10 @@ class FrappeStorageManager(storage.IStorageManager):
         respecting the lazy-load approach.
         """
         if not self._TEMPLATES:
-            self._load_templates_from_cache_or_db()
+            self._load_templates_from_db()
 
     def load_templates(self) -> None:
-        """
-        This method is now just a way to "force reload" the cache.
-        """
-        frappe.cache().delete(self.cache_key)
-        self._load_templates_from_cache_or_db()
+        self._load_templates_from_db()
 
     def load_triggers(self) -> None:
         pass
@@ -81,8 +66,6 @@ class FrappeStorageManager(storage.IStorageManager):
     def get(self, name: str) -> template.EngineTemplate:
         self._ensure_templates_loaded()
 
-        print("LOOKUP TEMPLATE BY NAME OF: ", name)
-        
         template_data = self._TEMPLATES.get(name)
         if not template_data:
             return None
@@ -94,12 +77,11 @@ class FrappeStorageManager(storage.IStorageManager):
             return None
 
     def triggers(self) -> List[template.EngineRoute]:
-        print('----- IM FETCHING TRIGGERS -------------')
-        print("BOT TRIGGERS: ", self._TRIGGERS)
         return self._TRIGGERS
     
     def __repr__(self):
-        return f"FrappeStorageManager(start_menu={self.START_MENU}, report_menu={self.REPORT_MENU}, templates_count={len(self._TEMPLATES.keys())}, triggers_count={len(self._TRIGGERS)})"
+        return f"FrappeStorageManager(start_menu={self.START_MENU}, report_menu={self.REPORT_MENU}, \
+            templates_count={len(self._TEMPLATES.keys())}, triggers_count={len(self._TRIGGERS)})"
 
 
 class FrappeRedisSessionManager(ISessionManager):
