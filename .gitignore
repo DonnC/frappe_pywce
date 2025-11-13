@@ -2,7 +2,10 @@
 *.pyc
 *.egg-info
 *.swp
+.idea/
 tags
 node_modules
 __pycache__
-lib/
+frappe_pywce/www/*.html
+frappe_pywce/public/builder/
+frappe_pywce/public/emulator/

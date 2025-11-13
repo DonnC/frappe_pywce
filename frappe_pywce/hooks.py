@@ -247,4 +247,14 @@ auth_hooks = [
 # }
 
 
+website_router_rules = [
+    # Emulator Routes
+    {"from_route": "/emulator", "to_route": "emulator"},
+    {"from_route": "/emulator/<path:app_path>", "to_route": "emulator"},
+    
+    # Builder Routes
+    {"from_route": "/builder", "to_route": "builder"},
+    {"from_route": "/builder/<path:app_path>", "to_route": "builder"},
+]
+
 setup_pywce_logging_for_frappe()

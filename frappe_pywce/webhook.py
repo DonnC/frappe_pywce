@@ -37,7 +37,7 @@ def _verify_webhook_signature(payload: bytes, received_sig: str):
         frappe.log_error(title="Chatbot Webhook Signature")
         frappe.throw("Invalid webhook signature", exc=frappe.ValidationError)
 
-def internal_webhook_handler(user:str, payload, headers):
+def _internal_webhook_handler(user:str, payload, headers):
     """Process webhook data internally
 
     If user is authenticated in the session, get current user and call
@@ -83,7 +83,7 @@ def _handle_webhook():
         return "Invalid user"
 
     frappe.enqueue(
-        internal_webhook_handler,
+        _internal_webhook_handler,
         queue="short",
         now=should_run_in_bg == 0,
         user=frappe.session.user,

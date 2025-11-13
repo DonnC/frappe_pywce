@@ -9,7 +9,7 @@ By contributing, you're helping improve a robust app designed for building Whats
 ### Prerequisites
 Ensure you have the following installed before contributing:
 - Python 3+
-- Frappe v13+ (ERPNext is optional)
+- Frappe v15+ (ERPNext is optional)
 - An active [TEST] WhatsApp Cloud API setup with the necessary tokens and configurations.
 
 ### Setting Up the Project

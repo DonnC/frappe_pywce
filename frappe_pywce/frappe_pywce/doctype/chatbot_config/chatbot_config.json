@@ -1,0 +1,177 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-03-19 22:00:48.366375",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "whatsapp_settings_section",
+  "chatbot_mobile_number",
+  "phone_id",
+  "webhook_token",
+  "column_break_vxfw",
+  "app_secret",
+  "access_token",
+  "template_settings_section",
+  "chatbot_name",
+  "env",
+  "column_break_irie",
+  "process_in_background",
+  "btn_launch_emulator",
+  "login_settings_section",
+  "login_enabled",
+  "column_break_hwhz",
+  "wa_id_same_mobile",
+  "validate_webhook_payload",
+  "flow_builder_settings_section",
+  "flow_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "whatsapp_settings_section",
+   "fieldtype": "Section Break",
+   "label": "WhatsApp Settings"
+  },
+  {
+   "fieldname": "access_token",
+   "fieldtype": "Small Text",
+   "label": "Access Token",
+   "reqd": 1
+  },
+  {
+   "fieldname": "phone_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Phone ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_vxfw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "app_secret",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "App Secret",
+   "reqd": 1
+  },
+  {
+   "default": "pywce-hub-token-123",
+   "fieldname": "webhook_token",
+   "fieldtype": "Data",
+   "label": "Webhook Token"
+  },
+  {
+   "fieldname": "template_settings_section",
+   "fieldtype": "Section Break",
+   "label": "General Settings"
+  },
+  {
+   "default": "0",
+   "description": "handle every webhook request in the background",
+   "fieldname": "process_in_background",
+   "fieldtype": "Check",
+   "label": "Handle in background?"
+  },
+  {
+   "default": "1",
+   "description": "On login, ensure wa_id == user account mobile no.",
+   "fieldname": "wa_id_same_mobile",
+   "fieldtype": "Check",
+   "label": "Validate wa_id with user mobile?"
+  },
+  {
+   "fieldname": "login_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Security Settings"
+  },
+  {
+   "default": "0",
+   "description": "check if chatbot processes user login",
+   "fieldname": "login_enabled",
+   "fieldtype": "Check",
+   "label": "Login enabled?"
+  },
+  {
+   "fieldname": "column_break_hwhz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "chatbot_mobile_number",
+   "fieldtype": "Phone",
+   "label": "ChatBot Mobile Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "chatbot_name",
+   "fieldtype": "Data",
+   "label": "ChatBot Name"
+  },
+  {
+   "fieldname": "column_break_irie",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "local",
+   "fieldname": "env",
+   "fieldtype": "Select",
+   "label": "Environment",
+   "options": "local\ntest\nlive"
+  },
+  {
+   "depends_on": "eval:doc.env === 'local'",
+   "description": "opens local whatsapp emulator page",
+   "fieldname": "btn_launch_emulator",
+   "fieldtype": "Button",
+   "label": "Launch Emulator"
+  },
+  {
+   "default": "1",
+   "fieldname": "validate_webhook_payload",
+   "fieldtype": "Check",
+   "label": "Validate Webhook Payload?"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "flow_builder_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Flow Builder Settings",
+   "read_only": 1
+  },
+  {
+   "fieldname": "flow_json",
+   "fieldtype": "JSON",
+   "label": "Flow JSON",
+   "print_hide": 1,
+   "read_only": 1,
+   "report_hide": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-11-12 11:52:34.249914",
+ "modified_by": "Administrator",
+ "module": "Frappe Pywce",
+ "name": "ChatBot Config",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
