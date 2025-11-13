@@ -1,4 +1,9 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from "react";
+import {
+  useFrappeGetCall,
+  useFrappeGetDoc,
+  useFrappeUpdateDoc,
+} from "frappe-react-sdk";
 import ReactFlow, {
   Controls,
   Background,
@@ -11,19 +16,26 @@ import ReactFlow, {
   Node,
   ReactFlowProvider,
   BackgroundVariant,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
-import { ChatbotTemplate, TemplateType, ChatbotFlow } from '@/types/chatbot';
-import { TemplateNode } from '@/components/flow/TemplateNode';
-import { SubflowNode } from '@/components/flow/SubflowNode';
-import { CustomEdge } from '@/components/flow/CustomEdge';
-import { Toolbar } from '@/components/flow/Toolbar';
-import { PropertiesSidebar } from '@/components/flow/PropertiesSidebar';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
-import { Code, FolderPlus } from 'lucide-react';
+} from "reactflow";
+import "reactflow/dist/style.css";
+import { ChatbotTemplate, TemplateType, ChatbotFlow } from "@/types/chatbot";
+import { TemplateNode } from "@/components/flow/TemplateNode";
+import { SubflowNode } from "@/components/flow/SubflowNode";
+import { CustomEdge } from "@/components/flow/CustomEdge";
+import { Toolbar } from "@/components/flow/Toolbar";
+import { PropertiesSidebar } from "@/components/flow/PropertiesSidebar";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { Code } from "lucide-react";
+
+const chatbotConfigDocName = "ChatBot Config";
 
 const nodeTypes = {
   template: TemplateNode,
@@ -37,16 +49,29 @@ const edgeTypes = {
   smoothstep: CustomEdge,
 };
 
+type ChatBotConfig = {
+  name?: string;
+  chatbot_name?: string;
+  flow_json?: string;
+  env?: string; // local, live, test
+};
+
 const Index = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState<ChatbotTemplate>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<ChatbotTemplate | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<ChatbotTemplate | null>(null);
   const [minimapVisible, setMinimapVisible] = useState(true);
-  const [edgeType, setEdgeType] = useState<'default' | 'straight' | 'step' | 'smoothstep'>('default');
+  const [edgeType, setEdgeType] = useState<
+    "default" | "straight" | "step" | "smoothstep"
+  >("default");
   const [showJsonDialog, setShowJsonDialog] = useState(false);
-  const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>([]);
+  const [history, setHistory] = useState<{ nodes: Node[]; edges: Edge[] }[]>(
+    []
+  );
   const [historyIndex, setHistoryIndex] = useState(-1);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isFlowLoaded, setIsFlowLoaded] = useState(false);
 
   const saveToHistory = useCallback(() => {
     const newHistory = history.slice(0, historyIndex + 1);
@@ -55,38 +80,136 @@ const Index = () => {
     setHistoryIndex(newHistory.length - 1);
   }, [nodes, edges, history, historyIndex]);
 
+  const [isSaving, setIsSaving] = useState(false);
+  const { data, error, isLoading, isValidating, mutate } =
+    useFrappeGetDoc<ChatBotConfig>(chatbotConfigDocName, chatbotConfigDocName);
+  const {
+    updateDoc,
+    loading: updating,
+    error: updateError,
+  } = useFrappeUpdateDoc<ChatBotConfig>();
+
+  useEffect(() => {
+    console.log("ChatBot Config: ", data);
+    console.log("ChatBot Config Name: ", data?.chatbot_name);
+
+    if (data && !isFlowLoaded) {
+      setIsFlowLoaded(true); 
+
+      if (data.flow_json) {
+        let flow: ChatbotFlow;
+        try {
+          flow =
+            typeof data.flow_json === "string"
+              ? JSON.parse(data.flow_json)
+              : (data.flow_json as unknown as ChatbotFlow);
+        } catch (err: any) {
+          toast.error("Failed to parse flow_json: " + (err?.message ?? err));
+          return;
+        }
+
+        const newNodes: Node<ChatbotTemplate>[] = flow.templates.map(
+          (template) => ({
+            id: template.id,
+            type: "template",
+            position: template.position || { x: 0, y: 0 },
+            data: template,
+          })
+        );
+
+        const newEdges: Edge[] = [];
+        flow.templates.forEach((template) => {
+          template.routes?.forEach((route) => {
+            if (route.connectedTo) {
+              const label = route.pattern
+                ? route.isRegex && route.pattern === ".*"
+                  ? "any"
+                  : route.pattern
+                : "";
+
+              newEdges.push({
+                id: `e${template.id}-${route.id}-${route.connectedTo}`,
+                source: template.id,
+                sourceHandle: route.id,
+                target: route.connectedTo,
+                type: edgeType,
+                animated: true,
+                label,
+                data: { isRegex: route.isRegex, edgeType },
+              });
+            }
+          });
+        });
+
+        setNodes(newNodes);
+        setEdges(newEdges);
+        saveToHistory();
+
+        const botName = data.chatbot_name ?? "untitled";
+        toast.success(`ChatBot flow "${botName}" loaded`);
+      } else {
+        toast.info(
+          `New flow for "${data.chatbot_name ?? "untitled"}". Start building!`
+        );
+        setNodes([]);
+        setEdges([]);
+        saveToHistory();
+      }
+    } else if (!data && !isLoading && !isFlowLoaded) {
+      setIsFlowLoaded(true);
+      toast.info(`Create a new chatbot to continue`);
+      setNodes([]);
+      setEdges([]);
+      saveToHistory();
+    }
+  }, [
+    data,
+    isLoading,
+    isFlowLoaded,
+    edgeType,
+    setNodes,
+    setEdges,
+    saveToHistory,
+  ]);
+
   const onConnect = useCallback(
     (params: Connection) => {
-      const sourceHandle = params.sourceHandle || 'default';
-      
+      const sourceHandle = params.sourceHandle || "default";
+
       // Find source and target nodes to determine handle positions
-      const sourceNode = nodes.find(n => n.id === params.source);
-      const targetNode = nodes.find(n => n.id === params.target);
-      
+      const sourceNode = nodes.find((n) => n.id === params.source);
+      const targetNode = nodes.find((n) => n.id === params.target);
+
       // Determine source and target positions based on handleOrientation
-      const sourceOrientation = sourceNode?.data?.handleOrientation || 'vertical';
-      const targetOrientation = targetNode?.data?.handleOrientation || 'vertical';
-      
-      const sourcePosition = sourceOrientation === 'horizontal' ? 'right' : 'bottom';
-      const targetPosition = targetOrientation === 'horizontal' ? 'left' : 'top';
-      
+      const sourceOrientation =
+        sourceNode?.data?.handleOrientation || "vertical";
+      const targetOrientation =
+        targetNode?.data?.handleOrientation || "vertical";
+
+      const sourcePosition =
+        sourceOrientation === "horizontal" ? "right" : "bottom";
+      const targetPosition =
+        targetOrientation === "horizontal" ? "left" : "top";
+
       // Find the route to get its pattern for the label
-      let routePattern = '';
+      let routePattern = "";
       let isRegex = false;
       if (sourceNode) {
         const template = sourceNode.data as ChatbotTemplate;
-        const route = template.routes?.find(r => r.id === sourceHandle);
+        const route = template.routes?.find((r) => r.id === sourceHandle);
         if (route) {
           routePattern = route.pattern;
           isRegex = route.isRegex;
         }
       }
-      
+
       // Create label for edge
-      const label = routePattern ? (
-        isRegex && routePattern === '.*' ? 'any' : routePattern
-      ) : '';
-      
+      const label = routePattern
+        ? isRegex && routePattern === ".*"
+          ? "any"
+          : routePattern
+        : "";
+
       const edge = {
         ...params,
         sourceHandle,
@@ -98,7 +221,7 @@ const Index = () => {
         data: { isRegex, edgeType },
       };
       setEdges((eds) => addEdge(edge, eds));
-      
+
       // Update the route's connectedTo field
       if (params.source && params.target) {
         setNodes((nds) =>
@@ -106,16 +229,16 @@ const Index = () => {
             if (node.id === params.source) {
               const template = node.data as ChatbotTemplate;
               const routes = template.routes || [];
-              
+
               // If connecting from default handle and no routes exist, create a route
-              if (sourceHandle === 'default' && routes.length === 0) {
+              if (sourceHandle === "default" && routes.length === 0) {
                 const newRoute = {
                   id: `route-${Date.now()}`,
-                  pattern: '',
+                  pattern: "",
                   isRegex: false,
                   connectedTo: params.target,
-                  sourcePosition: 'bottom' as const,
-                  targetPosition: 'top' as const,
+                  sourcePosition: "bottom" as const,
+                  targetPosition: "top" as const,
                 };
                 return {
                   ...node,
@@ -125,7 +248,7 @@ const Index = () => {
                   },
                 };
               }
-              
+
               // Update existing route
               const updatedRoutes = routes.map((route) => {
                 if (route.id === sourceHandle) {
@@ -133,7 +256,7 @@ const Index = () => {
                 }
                 return route;
               });
-              
+
               return {
                 ...node,
                 data: {
@@ -146,7 +269,7 @@ const Index = () => {
           })
         );
       }
-      
+
       saveToHistory();
     },
     [setEdges, setNodes, saveToHistory, edgeType, nodes]
@@ -184,7 +307,7 @@ const Index = () => {
     [setNodes, saveToHistory]
   );
 
-  const onNodeClick = useCallback((_: any, node: Node<ChatbotTemplate>) => {
+  const onNodeClick = useCallback((_: never, node: Node<ChatbotTemplate>) => {
     setSelectedTemplate(node.data);
   }, []);
 
@@ -195,13 +318,13 @@ const Index = () => {
         id,
         name: id,
         type,
-        message: type === 'text' ? '' : { body: '', title: '', footer: '' },
+        message: type === "text" ? "" : { body: "", title: "", footer: "" },
         routes: [],
       };
 
       const newNode: Node<ChatbotTemplate> = {
         id,
-        type: 'template',
+        type: "template",
         position: { x: Math.random() * 500, y: Math.random() * 500 },
         data: newTemplate,
       };
@@ -233,12 +356,13 @@ const Index = () => {
     setEdges((eds) =>
       eds.filter(
         (edge) =>
-          edge.source !== selectedTemplate.id && edge.target !== selectedTemplate.id
+          edge.source !== selectedTemplate.id &&
+          edge.target !== selectedTemplate.id
       )
     );
     setSelectedTemplate(null);
     saveToHistory();
-    toast.success('Template deleted');
+    toast.success("Template deleted");
   }, [selectedTemplate, setNodes, setEdges, saveToHistory]);
 
   const handleUndo = useCallback(() => {
@@ -265,18 +389,18 @@ const Index = () => {
         ...node.data,
         position: node.position,
       })),
-      version: '1.0',
+      version: "1.0",
     };
 
     const json = JSON.stringify(flow, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'chatbot-flow.json';
+    a.download = "chatbot-flow.json";
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('Flow exported successfully');
+    toast.success("Flow exported successfully");
   }, [nodes]);
 
   const importFlow = useCallback(() => {
@@ -292,23 +416,27 @@ const Index = () => {
       reader.onload = (e) => {
         try {
           const flow: ChatbotFlow = JSON.parse(e.target?.result as string);
-          
-          const newNodes: Node<ChatbotTemplate>[] = flow.templates.map((template) => ({
-            id: template.id,
-            type: 'template',
-            position: template.position || { x: 0, y: 0 },
-            data: template,
-          }));
+
+          const newNodes: Node<ChatbotTemplate>[] = flow.templates.map(
+            (template) => ({
+              id: template.id,
+              type: "template",
+              position: template.position || { x: 0, y: 0 },
+              data: template,
+            })
+          );
 
           // Reconstruct edges from route connections
           const newEdges: Edge[] = [];
           flow.templates.forEach((template) => {
             template.routes?.forEach((route) => {
               if (route.connectedTo) {
-                const label = route.pattern ? (
-                  route.isRegex && route.pattern === '.*' ? 'any' : route.pattern
-                ) : '';
-                
+                const label = route.pattern
+                  ? route.isRegex && route.pattern === ".*"
+                    ? "any"
+                    : route.pattern
+                  : "";
+
                 newEdges.push({
                   id: `e${template.id}-${route.id}-${route.connectedTo}`,
                   source: template.id,
@@ -326,9 +454,9 @@ const Index = () => {
           setNodes(newNodes);
           setEdges(newEdges);
           saveToHistory();
-          toast.success('Flow imported successfully');
+          toast.success("Flow imported successfully");
         } catch (error) {
-          toast.error('Failed to import flow');
+          toast.error("Failed to import flow");
         }
       };
       reader.readAsText(file);
@@ -347,15 +475,20 @@ const Index = () => {
     }));
     setNodes(layoutedNodes);
     saveToHistory();
-    toast.success('Auto-layout applied');
+    toast.success("Auto-layout applied");
   }, [nodes, setNodes, saveToHistory]);
 
   const toggleEdgeType = useCallback(() => {
-    const types: Array<'default' | 'straight' | 'step' | 'smoothstep'> = ['default', 'straight', 'step', 'smoothstep'];
+    const types: Array<"default" | "straight" | "step" | "smoothstep"> = [
+      "default",
+      "straight",
+      "step",
+      "smoothstep",
+    ];
     const currentIndex = types.indexOf(edgeType);
     const newType = types[(currentIndex + 1) % types.length];
     setEdgeType(newType);
-    
+
     // Update all existing edges to new type
     setEdges((eds) =>
       eds.map((edge) => ({
@@ -364,37 +497,59 @@ const Index = () => {
         data: { ...edge.data, edgeType: newType },
       }))
     );
-    
+
     toast.success(`Switched to ${newType} edges`);
   }, [edgeType, setEdges]);
 
+  // TODO: handle versions properly
   const getCurrentFlowJson = () => {
     const flow: ChatbotFlow = {
       templates: nodes.map((node) => ({
         ...node.data,
         position: node.position,
       })),
-      version: '1.0',
+      version: "1.0",
     };
     return JSON.stringify(flow, null, 2);
   };
 
   const saveCurrentFlowJson = () => {
-    const flow: ChatbotFlow = {
-      templates: nodes.map((node) => ({
-        ...node.data,
-        position: node.position,
-      })),
-      version: '1.0',
-    };
-    const flowJson = JSON.stringify(flow, null, 2);
+    setIsSaving(true);
+    const flowJson = getCurrentFlowJson();
 
-    // TODO: save back to doctype field
+    console.log("Saving flow JSON: ", flowJson);
+
+    updateDoc(chatbotConfigDocName, chatbotConfigDocName, {
+      flow_json: flowJson,
+    })
+      .then(async () => {
+        toast.success("Flow saved!");
+        await mutate();
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to save flow.");
+      })
+      .finally(() => {
+        setIsSaving(false);
+      });
   };
 
   const previewCurrentFlowJson = () => {
+    toast.info("Saving flow before preview...");
+    saveCurrentFlowJson();
 
-    // TODO: check if test is enabled and navigate to emulator screen
+    if (data?.env != "local") {
+      toast.warning("Only local environment can run on Emulator");
+    } else {
+      window.open(`/emulator`, "_blank");
+    }
+  };
+
+  const FetchingComponent = () => {
+    const { data } = useFrappeGetCall("ping");
+
+    return <div>Ping: {data?.message}</div>;
   };
 
   return (
@@ -432,7 +587,7 @@ const Index = () => {
               className="bg-background border rounded-lg"
             />
           )}
-          
+
           <Toolbar
             onUndo={handleUndo}
             onRedo={handleRedo}
@@ -442,6 +597,8 @@ const Index = () => {
             onImport={importFlow}
             onAddTemplate={addTemplate}
             onToggleEdgeType={toggleEdgeType}
+            onSave={saveCurrentFlowJson}
+            onPreview={previewCurrentFlowJson}
             canUndo={historyIndex > 0}
             canRedo={historyIndex < history.length - 1}
             minimapVisible={minimapVisible}
@@ -453,6 +610,8 @@ const Index = () => {
               <Code className="h-4 w-4 mr-2" />
               Show Flow JSON
             </Button>
+
+            {/* <FetchingComponent /> */}
           </div>
         </ReactFlow>
       </div>

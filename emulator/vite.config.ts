@@ -3,11 +3,10 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-const frappeHost = process.env.FRAPPE_HOST || "http://localhost:8000";
+const frappeHost = "http://localhost:8000";
 
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "::",
     port: 8080,
     proxy: {
       "/api": {
@@ -31,5 +30,8 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: `../frappe_pywce/public/emulator`,
     emptyOutDir: true,
+    target: "es2015",
+    sourcemap: true,
+    chunkSizeWarningLimit: 1000,
   },
 }));

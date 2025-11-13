@@ -49,73 +49,88 @@ bridge-server/
 ## index.js
 
 ```javascript
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
-const axios = require('axios');
-const bodyParser = require('body-parser');
-const { parseWhatsAppPayload } = require('./utils/payloadParser');
-const { constructWebhookPayload } = require('./utils/webhookConstructor');
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
+const axios = require("axios");
+const bodyParser = require("body-parser");
+const { parseWhatsAppPayload } = require("./utils/payloadParser");
+const { constructWebhookPayload } = require("./utils/webhookConstructor");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST'],
+    origin: "*",
+    methods: ["GET", "POST"],
   },
 });
 
 // CONFIGURATION: Change this to your bot's webhook URL
-const YOUR_BOT_WEBHOOK_URL = 'http://localhost:8000/webhook';
+const YOUR_BOT_WEBHOOK_URL = "http://localhost:8000/webhook";
 
 app.use(cors());
 app.use(bodyParser.json());
 
 // Endpoint: Receive full WhatsApp payload from bot, translate, and send to UI
-app.post('/send-to-emulator', (req, res) => {
+app.post("/send-to-emulator", (req, res) => {
   try {
     const fullPayload = req.body;
-    console.log('📥 Received WhatsApp payload from bot:', JSON.stringify(fullPayload, null, 2));
+    console.log(
+      "📥 Received WhatsApp payload from bot:",
+      JSON.stringify(fullPayload, null, 2)
+    );
 
     // Parse the full WhatsApp payload into Simple UI Contract
     const simpleMessage = parseWhatsAppPayload(fullPayload);
-    console.log('✨ Translated to Simple UI Contract:', JSON.stringify(simpleMessage, null, 2));
+    console.log(
+      "✨ Translated to Simple UI Contract:",
+      JSON.stringify(simpleMessage, null, 2)
+    );
 
     // Emit to all connected UI clients
-    io.emit('ui_message', simpleMessage);
-    console.log('📤 Sent to UI clients');
+    io.emit("ui_message", simpleMessage);
+    console.log("📤 Sent to UI clients");
 
-    res.status(200).json({ status: 'ok', message: 'Message sent to emulator' });
+    res.status(200).json({ status: "ok", message: "Message sent to emulator" });
   } catch (error) {
-    console.error('❌ Error processing payload:', error);
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error("❌ Error processing payload:", error);
+    res.status(500).json({ status: "error", message: error.message });
   }
 });
 
 // Socket.io: Listen for replies from UI, translate, and POST to bot
-io.on('connection', (socket) => {
-  console.log('✅ UI client connected:', socket.id);
+io.on("connection", (socket) => {
+  console.log("✅ UI client connected:", socket.id);
 
-  socket.on('ui_reply', async (simpleReply) => {
+  socket.on("ui_reply", async (simpleReply) => {
     try {
-      console.log('📥 Received reply from UI:', JSON.stringify(simpleReply, null, 2));
+      console.log(
+        "📥 Received reply from UI:",
+        JSON.stringify(simpleReply, null, 2)
+      );
 
       // Construct full WhatsApp webhook payload
       const fullWebhookPayload = constructWebhookPayload(simpleReply);
-      console.log('✨ Constructed webhook payload:', JSON.stringify(fullWebhookPayload, null, 2));
+      console.log(
+        "✨ Constructed webhook payload:",
+        JSON.stringify(fullWebhookPayload, null, 2)
+      );
 
       // Send to bot's webhook
-      const response = await axios.post(YOUR_BOT_WEBHOOK_URL, fullWebhookPayload);
-      console.log('📤 Sent to bot webhook. Response:', response.status);
+      const response = await axios.post(
+        YOUR_BOT_WEBHOOK_URL,
+        fullWebhookPayload
+      );
+      console.log("📤 Sent to bot webhook. Response:", response.status);
     } catch (error) {
-      console.error('❌ Error sending to bot:', error.message);
+      console.error("❌ Error sending to bot:", error.message);
     }
   });
 
-  socket.on('disconnect', () => {
-    console.log('❌ UI client disconnected:', socket.id);
+  socket.on("disconnect", () => {
+    console.log("❌ UI client disconnected:", socket.id);
   });
 });
 
@@ -148,129 +163,132 @@ function parseWhatsAppPayload(payload) {
   const id = `wamid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   switch (type) {
-    case 'text':
+    case "text":
       return {
         id,
-        type: 'text',
+        type: "text",
         payload: {
-          body: payload.text?.body || '',
+          body: payload.text?.body || "",
         },
       };
 
-    case 'text_preview':
+    case "text_preview":
       return {
         id,
-        type: 'text_preview',
+        type: "text_preview",
         payload: {
-          body: payload.text?.body || '',
-          preview: payload.text?.preview_url || '',
+          body: payload.text?.body || "",
+          preview: payload.text?.preview_url || "",
         },
       };
 
-    case 'location':
+    case "location":
       return {
         id,
-        type: 'location',
+        type: "location",
         payload: {
           latitude: payload.location?.latitude || 0,
           longitude: payload.location?.longitude || 0,
-          name: payload.location?.name || '',
-          address: payload.location?.address || '',
+          name: payload.location?.name || "",
+          address: payload.location?.address || "",
         },
       };
 
-    case 'image':
+    case "image":
       return {
         id,
-        type: 'image',
+        type: "image",
         payload: {
-          link: payload.image?.link || '',
+          link: payload.image?.link || "",
           caption: payload.image?.caption || null,
         },
       };
 
-    case 'video':
+    case "video":
       return {
         id,
-        type: 'video',
+        type: "video",
         payload: {
-          link: payload.video?.link || '',
+          link: payload.video?.link || "",
           caption: payload.video?.caption || null,
         },
       };
 
-    case 'document':
+    case "document":
       return {
         id,
-        type: 'document',
+        type: "document",
         payload: {
-          link: payload.document?.link || '',
-          filename: payload.document?.filename || 'document',
+          link: payload.document?.link || "",
+          filename: payload.document?.filename || "document",
           caption: payload.document?.caption || null,
         },
       };
 
-    case 'interactive':
+    case "interactive":
       const interactiveType = payload.interactive?.type;
 
-      if (interactiveType === 'button') {
+      if (interactiveType === "button") {
         return {
           id,
-          type: 'interactive_button',
+          type: "interactive_button",
           payload: {
             header: payload.interactive.header?.text || null,
-            body: payload.interactive.body?.text || '',
+            body: payload.interactive.body?.text || "",
             footer: payload.interactive.footer?.text || null,
             buttons: (payload.interactive.action?.buttons || []).map((btn) => ({
-              id: btn.reply?.id || '',
-              title: btn.reply?.title || '',
+              id: btn.reply?.id || "",
+              title: btn.reply?.title || "",
             })),
           },
         };
       }
 
-      if (interactiveType === 'list') {
+      if (interactiveType === "list") {
         return {
           id,
-          type: 'interactive_list',
+          type: "interactive_list",
           payload: {
             header: payload.interactive.header?.text || null,
-            body: payload.interactive.body?.text || '',
+            body: payload.interactive.body?.text || "",
             footer: payload.interactive.footer?.text || null,
-            buttonText: payload.interactive.action?.button || 'View Options',
-            sections: (payload.interactive.action?.sections || []).map((section) => ({
-              title: section.title || null,
-              rows: (section.rows || []).map((row) => ({
-                id: row.id || '',
-                title: row.title || '',
-                description: row.description || null,
-              })),
-            })),
+            buttonText: payload.interactive.action?.button || "View Options",
+            sections: (payload.interactive.action?.sections || []).map(
+              (section) => ({
+                title: section.title || null,
+                rows: (section.rows || []).map((row) => ({
+                  id: row.id || "",
+                  title: row.title || "",
+                  description: row.description || null,
+                })),
+              })
+            ),
           },
         };
       }
 
-      if (interactiveType === 'cta_url') {
+      if (interactiveType === "cta_url") {
         return {
           id,
-          type: 'interactive_cta',
+          type: "interactive_cta",
           payload: {
             header: payload.interactive.header?.text || null,
-            body: payload.interactive.body?.text || '',
+            body: payload.interactive.body?.text || "",
             footer: payload.interactive.footer?.text || null,
-            displayText: payload.interactive.action?.parameters?.display_text || 'Visit',
-            url: payload.interactive.action?.parameters?.url || '',
+            displayText:
+              payload.interactive.action?.parameters?.display_text || "Visit",
+            url: payload.interactive.action?.parameters?.url || "",
           },
         };
       }
 
-      if (interactiveType === 'location_request_message') {
+      if (interactiveType === "location_request_message") {
         return {
           id,
-          type: 'interactive_location_request',
+          type: "interactive_location_request",
           payload: {
             header: payload.interactive.header?.text || null,
-            body: payload.interactive.body?.text || '',
+            body: payload.interactive.body?.text || "",
             footer: payload.interactive.footer?.text || null,
           },
         };
@@ -296,33 +314,35 @@ module.exports = { parseWhatsAppPayload };
  */
 function constructWebhookPayload(simpleReply) {
   const timestamp = Math.floor(Date.now() / 1000).toString();
-  const messageId = `wamid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  const from = '1234567890'; // Mock user phone number
+  const messageId = `wamid-${Date.now()}-${Math.random()
+    .toString(36)
+    .substr(2, 9)}`;
+  const from = "1234567890"; // Mock user phone number
 
   const baseWebhook = {
-    object: 'whatsapp_business_account',
+    object: "whatsapp_business_account",
     entry: [
       {
-        id: 'WHATSAPP_BUSINESS_ACCOUNT_ID',
+        id: "WHATSAPP_BUSINESS_ACCOUNT_ID",
         changes: [
           {
             value: {
-              messaging_product: 'whatsapp',
+              messaging_product: "whatsapp",
               metadata: {
-                display_phone_number: '15550000000',
-                phone_number_id: 'PHONE_NUMBER_ID',
+                display_phone_number: "15550000000",
+                phone_number_id: "PHONE_NUMBER_ID",
               },
               contacts: [
                 {
                   profile: {
-                    name: 'Test User',
+                    name: "Test User",
                   },
                   wa_id: from,
                 },
               ],
               messages: [],
             },
-            field: 'messages',
+            field: "messages",
           },
         ],
       },
@@ -333,21 +353,21 @@ function constructWebhookPayload(simpleReply) {
     from,
     id: messageId,
     timestamp,
-    type: '',
+    type: "",
   };
 
   switch (simpleReply.type) {
-    case 'text':
-      message.type = 'text';
+    case "text":
+      message.type = "text";
       message.text = {
         body: simpleReply.payload.body,
       };
       break;
 
-    case 'button_reply':
-      message.type = 'interactive';
+    case "button_reply":
+      message.type = "interactive";
       message.interactive = {
-        type: 'button_reply',
+        type: "button_reply",
         button_reply: {
           id: simpleReply.payload.id,
           title: simpleReply.payload.title,
@@ -360,10 +380,10 @@ function constructWebhookPayload(simpleReply) {
       }
       break;
 
-    case 'list_reply':
-      message.type = 'interactive';
+    case "list_reply":
+      message.type = "interactive";
       message.interactive = {
-        type: 'list_reply',
+        type: "list_reply",
         list_reply: {
           id: simpleReply.payload.id,
           title: simpleReply.payload.title,
@@ -377,8 +397,8 @@ function constructWebhookPayload(simpleReply) {
       }
       break;
 
-    case 'location':
-      message.type = 'location';
+    case "location":
+      message.type = "location";
       message.location = {
         latitude: simpleReply.payload.latitude,
         longitude: simpleReply.payload.longitude,
@@ -392,24 +412,24 @@ function constructWebhookPayload(simpleReply) {
       }
       break;
 
-    case 'image':
-      message.type = 'image';
+    case "image":
+      message.type = "image";
       message.image = {
         link: simpleReply.payload.link,
         caption: simpleReply.payload.caption || null,
       };
       break;
 
-    case 'video':
-      message.type = 'video';
+    case "video":
+      message.type = "video";
       message.video = {
         link: simpleReply.payload.link,
         caption: simpleReply.payload.caption || null,
       };
       break;
 
-    case 'document':
-      message.type = 'document';
+    case "document":
+      message.type = "document";
       message.document = {
         link: simpleReply.payload.link,
         filename: simpleReply.payload.filename,

@@ -1,12 +1,13 @@
 {
   "name": "builder",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
-  "scripts": {
+    "scripts": {
     "dev": "vite",
-    "build": "vite build --base=/assets/frappe_pywce/builder/ && npm run copy-html",
-    "copy-html": "cp ../frappe_pywce/public/builder/index.html ../frappe_pywce/www/builder.html"
+    "build": "vite build --base=/assets/frappe_pywce/builder/ && npm run copy-html-entry",
+    "copy-html-entry": "cp ../frappe_pywce/public/builder/index.html ../frappe_pywce/www/builder.html",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

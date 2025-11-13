@@ -1,14 +1,16 @@
 # Frappe Pywce
-A WhatsApp chatbot engine in frappe powered by [Pywce](https://github.com/DonnC/pywce)
+A complete WhatsApp chatbot engine in frappe powered by [Pywce](https://github.com/DonnC/pywce)
 
-![workspace](screenshots/home.png)
+![builder](screenshots/builder.png)
+
+![emulator](screenshots/emulator.png)
 
 ## Features
 - [x] Create a chatbot from frappe desk UI
-- [x] Doctype driven chatbot
+- [x] Visual WhatsApp flow builder
 - [x] Chatbot changes reflect instantly on WhatsApp
 - [x] Improved performance via background processing using `frappe.enqueue(...)`
-- [x] Frappe dependent business logic via server side scripts-like approach or directly on UI
+- [x] Comes with out-of-the-box local WhatsApp emulator to test without WhatsApp live connection
 - [x] Support for all features of pywce
 
 ## Setup
@@ -21,39 +23,38 @@ $ bench --site `site-name` install-app frappe_pywce
 ```
 
 ### Configure
-Navigate to `app settings > Configs` to add your whatsapp configs
+On AwesomeBar, search for  to `ChatBot Config` to add your whatsapp / chatbot configs
 
 
 ![configs](screenshots/config.png)
 
-### Web UIs
-One-Time Setup
+### ChatBot UI Builder
+To build chatbot locally using builder
+1. Navigate to bench folder
+2. Navigate to app folder `cd apps/frappe_pywce`
+3. Setup dev `yarn dev`
+4. The web uis will run, you will see an output as below
 
+![terminal](screenshots/terminal.png)
+
+- Access builder ui on port `8080` and emulator ui will be on port `8081`
+
+
+### Production build
+For a production build, it's a single command via bench
 ```bash
-$ cd apps/frappe-pywce
-
-$ npm run install-all
+$ bench build --app frappe_pywce
 ```
 
-Development (All apps + bridge)
+> Your production build `builder` ui will be available on `http://your-frappe-site.com/builder`
 
-Terminal 1: `bench start`
+> If all goes well, you will have the same screens as on the demo above!
 
-Terminal 2: (from apps/frappe-pywce/) `npm run dev`
+---
 
-Access:
- Emulator: http://localhost:8080
- Builder:  http://localhost:8081
 
-Production Build
-
-Just run: `bench build --app frappe-pywce`
-
-This will automatically trigger `build.py`, which in turn runs yarn build in both app folders, creating the public/ assets and the www/ HTML files.
-
-Access:
- Emulator: http://your-frappe-site.com/emulator
- Builder:  http://your-frappe-site.com/builder
+## Support
+Need a ChatBot for your business or next project! or just to say Hello - Let's get in touch via [email](donychinhuru@gmail.com)
 
 ## Documentation
 
@@ -62,6 +63,8 @@ Visit the [official wce documentation](https://docs.page/donnc/wce/frappe) for a
 ## Contributing
 
 We welcome contributions! Please check out the [Contributing Guide](CONTRIBUTING.md) for details.
+
+The UIs where largely vibe-coded using Lovable (React)
 
 ## License
 

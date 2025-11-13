@@ -20,6 +20,8 @@ interface ToolbarProps {
   onImport: () => void;
   onAddTemplate: (type: TemplateType) => void;
   onToggleEdgeType: () => void;
+  onSave: () => void;
+  onPreview: () => void;
   canUndo: boolean;
   canRedo: boolean;
   minimapVisible: boolean;
@@ -51,6 +53,8 @@ export const Toolbar = ({
   onImport,
   onAddTemplate,
   onToggleEdgeType,
+    onSave,
+  onPreview,
   canUndo,
   canRedo,
   minimapVisible,
@@ -146,10 +150,7 @@ export const Toolbar = ({
       <Button 
         variant="default" 
         size="sm" 
-        onClick={() => {
-          // TODO: Add save logic here
-          console.log('Save clicked');
-        }}
+        onClick={onSave}
         title="Save"
       >
         <Save className="h-4 w-4 mr-2" />
@@ -159,10 +160,7 @@ export const Toolbar = ({
       <Button 
         variant="outline" 
         size="sm" 
-        onClick={() => {
-          // TODO: Add local preview logic here
-          console.log('Local Preview clicked');
-        }}
+        onClick={onPreview}
         title="Local Preview"
       >
         <Eye className="h-4 w-4 mr-2" />

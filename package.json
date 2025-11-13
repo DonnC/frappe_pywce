@@ -1,9 +1,12 @@
 {
-  "name": "frappe-pywce-monorepo",
+  "name": "frappe_pywce",
+  "version": "1.0.0",
+  "description": "Pywce web UIs",
   "private": true,
+  "main": "index.js",
   "scripts": {
-    "postinstall": "npm run install-all",
-    "install-all": "cd emulator && yarn install && cd ../builder && yarn install && cd ../bridge && npm install",
+    "build": "cd emulator && yarn install && yarn build && cd ../builder && yarn install && yarn build",
+    "postinstall": "cd emulator && yarn install && cd ../builder && yarn install && cd ../bridge && npm install",
     "dev": "concurrently \"npm:dev:emulator\" \"npm:dev:builder\" \"npm:dev:bridge\"",
     "dev:emulator": "cd emulator && yarn dev",
     "dev:builder": "cd builder && yarn dev",
@@ -11,5 +14,14 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
-  }
+  },
+  "keywords": [
+    "pywce",
+    "frappe",
+    "whatsapp",
+    "web",
+    "ui"
+  ],
+  "author": "DonnC <github.com/DonnC>",
+  "license": "ISC"
 }

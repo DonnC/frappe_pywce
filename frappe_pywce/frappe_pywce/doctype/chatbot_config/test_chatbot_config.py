@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestPywceConfig(FrappeTestCase):
+class TestChatBotConfig(FrappeTestCase):
 	pass

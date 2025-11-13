@@ -1,41 +1,90 @@
 import json
-from frappe_pywce.util import get_cachable_template
-from pywce import EngineConstants, ISessionManager, storage, template
+from pywce import ISessionManager, VisualTranslator, storage, template
 import frappe
-from typing import Dict, Any, List, Type, TypeVar
+from typing import Dict, Any, List, Optional, Type, TypeVar
 
 T = TypeVar("T")
 
 class FrappeStorageManager(storage.IStorageManager):
-    def load_templates(self):
-        pass
+    """
+    Implements the IStorageManager interface for a live Frappe backend.
 
-    def load_triggers(self):
-        pass
+    This class is responsible for:
+    1. Fetching the "active" chatbot flow.
+    2. Caching the *translated* pywce-compatible dictionary.
+    3. Invalidating the cache when the bot is saved in Frappe.
+    """
+    _TEMPLATES: Dict = {}
+    _TRIGGERS: List[template.EngineRoute] = {}
 
-    def exists(self, name) -> bool:
-        val = frappe.db.exists(dt="Chatbot Template", dn=name, cache=True) is not None
-        return val
+    START_MENU: Optional[str] = None
+    REPORT_MENU: Optional[str] = None
     
-    def triggers(self) -> List[template.EngineRoute]:
-        triggers = frappe.get_all(doctype="Template Trigger", fields=['regex', 'template'], limit_page_length=100)
-        routes = []
-
-        for trigger in triggers:
-            routes.append(template.EngineRoute(
-                user_input=trigger.get('regex') if trigger.get('regex').startswith(EngineConstants.REGEX_PLACEHOLDER) else f"{EngineConstants.REGEX_PLACEHOLDER}{trigger.get('regex')}",
-                is_regex=trigger.get('regex').startswith(EngineConstants.REGEX_PLACEHOLDER),
-                next_stage=trigger.get('template')
-            ))
+    def __init__(self):
+        self.cache_key = "fpw:flow_templates"
+    
+    def _load_templates_from_cache_or_db(self) -> Dict:
+        cached_templates = frappe.cache().get(self.cache_key)
+        if cached_templates:
+            return cached_templates
         
-        return routes
+        try:
+            flow_json = frappe.get_single_value(
+                "ChatBot Config", 
+                "flow_json"
+            )
+            if not flow_json:
+                raise Exception(f"Flow '{self.flow_name}' not found or is empty.")
+            
+            ui_translator = VisualTranslator()
+            self._TEMPLATES, self._TRIGGERS = ui_translator.translate(flow_json)
 
-    def get(self, name) -> template.EngineTemplate:
-        if self.exists(name) is True:
-            return template.Template.as_model(get_cachable_template(name))
+            self.START_MENU = ui_translator.START_MENU
+            self.REPORT_MENU = ui_translator.REPORT_MENU
 
+            frappe.cache().set(self.cache_key, self._TEMPLATES)
 
-        raise ValueError(f"Template: {name}, not found!")
+        except Exception as e:
+            frappe.log_error(str(e), f"FrappeStorageManager Load Error")
+            self._TEMPLATES = {}
+
+    def _ensure_templates_loaded(self):
+        """
+        Ensures self._TEMPLATES is populated,
+        respecting the lazy-load approach.
+        """
+        if not self._TEMPLATES:
+            self._load_templates_from_cache_or_db()
+
+    def load_templates(self) -> None:
+        """
+        This method is now just a way to "force reload" the cache.
+        """
+        frappe.cache().delete(self.cache_key)
+        self._load_templates_from_cache_or_db()
+
+    def load_triggers(self) -> None:
+        pass
+
+    def exists(self, name: str) -> bool:
+        self._ensure_templates_loaded()
+        return name in self._TEMPLATES
+
+    def get(self, name: str) -> template.EngineTemplate:
+        self._ensure_templates_loaded()
+        
+        template_data = self._TEMPLATES.get(name)
+        if not template_data:
+            return None
+        
+        try:
+            return template.Template.as_model(template_data)
+        except Exception as e:
+            frappe.log_error(f"Pydantic validation error for '{name}': {e}")
+            return None
+
+    def triggers(self) -> List[template.EngineRoute]:
+        return self._TRIGGERS
 
 
 class FrappeRedisSessionManager(ISessionManager):

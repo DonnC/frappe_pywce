@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
-import { SocketProvider, useSocket } from '@/context/SocketProvider';
-import { ChatWindow } from '@/components/ChatWindow';
-import { DemoToolbar } from '@/components/DemoToolbar';
-import { ChatMessage, SimpleUIMessage, UIReply } from '@/types/message';
-import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from "react";
+import { SocketProvider, useSocket } from "@/context/SocketProvider";
+import { ChatWindow } from "@/components/ChatWindow";
+import { DemoToolbar } from "@/components/DemoToolbar";
+import { ChatMessage, SimpleUIMessage, UIReply } from "@/types/message";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { useFrappeGetCall } from "frappe-react-sdk";
 
 const Index = () => {
   return (
@@ -22,18 +23,18 @@ const WhatsAppEmulator = () => {
     if (!socket) return;
 
     // Listen for messages from the bridge
-    socket.on('ui_message', (simpleMessage: SimpleUIMessage) => {
-      console.log('📨 Received message from bridge:', simpleMessage);
-      addMessage(simpleMessage, 'out');
-      toast.success('New message from bot');
+    socket.on("ui_message", (simpleMessage: SimpleUIMessage) => {
+      console.log("📨 Received message from bridge:", simpleMessage);
+      addMessage(simpleMessage, "out");
+      toast.success("New message from bot");
     });
 
     return () => {
-      socket.off('ui_message');
+      socket.off("ui_message");
     };
   }, [socket]);
 
-  const addMessage = (data: SimpleUIMessage, direction: 'in' | 'out') => {
+  const addMessage = (data: SimpleUIMessage, direction: "in" | "out") => {
     const newMessage: ChatMessage = {
       id: `msg-${Date.now()}-${Math.random()}`,
       direction,
@@ -44,91 +45,97 @@ const WhatsAppEmulator = () => {
   };
 
   const handleReply = (reply: UIReply) => {
-    console.log('📤 Sending reply to bridge:', reply);
-    
+    console.log("📤 Sending reply to bridge:", reply);
+
     // Show the user's reply in the UI
-    if (reply.type === 'text') {
+    if (reply.type === "text") {
       addMessage(
         {
           id: `reply-${Date.now()}`,
-          type: 'text',
+          type: "text",
           payload: reply.payload,
         },
-        'in'
+        "in"
       );
-    } else if (reply.type === 'button_reply') {
+    } else if (reply.type === "button_reply") {
       addMessage(
         {
           id: `reply-${Date.now()}`,
-          type: 'text',
+          type: "text",
           payload: { body: `✓ ${reply.payload.title}` },
         },
-        'in'
+        "in"
       );
-    } else if (reply.type === 'list_reply') {
+    } else if (reply.type === "list_reply") {
       addMessage(
         {
           id: `reply-${Date.now()}`,
-          type: 'text',
+          type: "text",
           payload: { body: `✓ ${reply.payload.title}` },
         },
-        'in'
+        "in"
       );
-    } else if (reply.type === 'location') {
+    } else if (reply.type === "location") {
       addMessage(
         {
           id: `reply-${Date.now()}`,
-          type: 'location',
+          type: "location",
           payload: reply.payload,
         },
-        'in'
+        "in"
       );
-    } else if (reply.type === 'image') {
+    } else if (reply.type === "image") {
       addMessage(
         {
           id: `reply-${Date.now()}`,
-          type: 'image',
+          type: "image",
           payload: reply.payload,
         },
-        'in'
+        "in"
       );
-    } else if (reply.type === 'video') {
+    } else if (reply.type === "video") {
       addMessage(
         {
           id: `reply-${Date.now()}`,
-          type: 'video',
+          type: "video",
           payload: reply.payload,
         },
-        'in'
+        "in"
       );
-    } else if (reply.type === 'document') {
+    } else if (reply.type === "document") {
       addMessage(
         {
           id: `reply-${Date.now()}`,
-          type: 'document',
+          type: "document",
           payload: reply.payload,
         },
-        'in'
+        "in"
       );
     }
 
     // Send to bridge
     if (socket) {
-      socket.emit('ui_reply', reply);
-      toast.success('Reply sent to bot');
+      socket.emit("ui_reply", reply);
+      toast.success("Reply sent to bot");
     } else {
-      toast.error('Not connected to bridge server');
+      toast.error("Not connected to bridge server");
     }
   };
 
   const handleAddDemoMessage = (demoMessage: SimpleUIMessage) => {
-    addMessage(demoMessage, 'out');
-    toast.info('Demo message added');
+    addMessage(demoMessage, "out");
+    toast.info("Demo message added");
   };
 
   const handleClearMessages = () => {
     setMessages([]);
-    toast.info('Messages cleared');
+    toast.info("Messages cleared");
+  };
+
+  const FetchingComponent = () => {
+    const { data } = useFrappeGetCall("ping");
+
+    return <div>Ping: {data?.message}</div>;
   };
 
   return (
@@ -137,9 +144,14 @@ const WhatsAppEmulator = () => {
         {/* Connection Status Badge */}
         <div className="px-4 py-2 bg-muted/50 flex items-center justify-between text-xs">
           <span className="text-muted-foreground">WhatsApp UI Emulator</span>
-          <Badge variant={isConnected ? 'default' : 'secondary'} className="text-xs">
-            {isConnected ? '🟢 Connected' : '🔴 Bridge Offline'}
+          <Badge
+            variant={isConnected ? "default" : "secondary"}
+            className="text-xs"
+          >
+            {isConnected ? "🟢 Connected" : "🔴 Frappe Offline"}
           </Badge>
+
+          <FetchingComponent />
         </div>
 
         {/* Chat Window */}
@@ -148,7 +160,10 @@ const WhatsAppEmulator = () => {
         </div>
 
         {/* Demo Toolbar */}
-        <DemoToolbar onAddMessage={handleAddDemoMessage} onClear={handleClearMessages} />
+        <DemoToolbar
+          onAddMessage={handleAddDemoMessage}
+          onClear={handleClearMessages}
+        />
       </div>
     </div>
   );

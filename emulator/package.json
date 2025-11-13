@@ -1,12 +1,13 @@
 {
   "name": "emulator",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --base=/assets/frappe_pywce/emulator/ && npm run copy-html",
-    "copy-html": "cp ../frappe_pywce/public/emulator/index.html ../frappe_pywce/www/emulator.html"
+    "build": "vite build --base=/assets/frappe_pywce/emulator/ && npm run copy-html-entry",
+    "copy-html-entry": "cp ../frappe_pywce/public/emulator/index.html ../frappe_pywce/www/emulator.html",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
