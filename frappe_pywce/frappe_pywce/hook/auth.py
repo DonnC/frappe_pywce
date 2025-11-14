@@ -4,6 +4,9 @@ import secrets
 import datetime
 from pywce import HookArg, TemplateDynamicBody
 from pywce.src import exceptions
+from util import get_logger
+
+logger = get_logger()
 
 @frappe.whitelist()
 def generate_login_link(hook: HookArg) -> TemplateDynamicBody:

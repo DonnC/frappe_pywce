@@ -1,10 +1,13 @@
 import json
 
-import frappe
+import redis
+import redis.exceptions
 
+import frappe
 import frappe.utils
+
 from frappe_pywce.config import get_engine_config, get_wa_config
-from frappe_pywce.util import CACHE_KEY_PREFIX, bot_settings, create_cache_key, get_logger
+from frappe_pywce.util import CACHE_KEY_PREFIX, LOCK_WAIT_TIME, LOCK_LEASE_TIME, bot_settings, create_cache_key, get_logger
 
 logger = get_logger()
 
@@ -25,7 +28,7 @@ def _verifier():
     frappe.throw("Webhook verification challenge failed", exc=frappe.PermissionError)
 
 
-def _internal_webhook_handler(user:str, payload):
+def _internal_webhook_handler(user:str, wa_id:str, payload:dict):
     """Process webhook data internally
 
     If user is authenticated in the session, get current user and call
@@ -42,10 +45,29 @@ def _internal_webhook_handler(user:str, payload):
     """
 
     try:
-        get_engine_config().process_webhook(payload)
+        lock_key = f"wa_lock:{wa_id}"
+
+        print("Running worker with lock_key: ", lock_key)
+        
+        with frappe.cache().lock(lock_key, timeout=LOCK_LEASE_TIME, blocking_timeout=LOCK_WAIT_TIME):
+            print("Running action job with lock key: ", lock_key)
+            frappe.set_user(user)
+            print("Running action job with user ", user)
+            get_engine_config().process_webhook(payload)
+
+    except redis.exceptions.LockError:
+        logger.critical("FIFO Enforcement: Dropped concurrent message for %s due to lock error.", wa_id)
+        print('Lock error: ', str(e))
 
     except Exception:
         frappe.log_error(title="Chatbot Webhook E.Handler")
+
+
+def _on_job_success(**kwargs):
+    logger.debug("Webhook job completed successfully: %s", kwargs)
+
+def _on_job_error(**kwargs):
+    logger.debug("Webhook job failed: %s", kwargs)
 
 def _handle_webhook():
     payload = frappe.request.data
@@ -61,14 +83,24 @@ def _handle_webhook():
 
     if wa_user is None:
         return "Invalid user"
+    
+    job_id = f"{wa_user.wa_id}:{wa_user.msg_id}"
+    
+    logger.debug("Starting a new webhook job id: %s", job_id)
+
+    print("Im starting a new job")
 
     frappe.enqueue(
         _internal_webhook_handler,
-        queue="short",
         now=should_run_in_bg == 0,
+
         user=frappe.session.user,
         payload=payload_dict,
-        job_id= create_cache_key(f"{wa_user.wa_id}:{wa_user.msg_id}")
+        wa_id=wa_user.wa_id,
+
+        job_id= create_cache_key(job_id),
+        on_success=_on_job_success,
+        on_failure=_on_job_error
     )
 
     return "OK"

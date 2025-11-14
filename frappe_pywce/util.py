@@ -12,6 +12,15 @@ from pywce import HookUtil, SessionConstants
 LOGIN_DURATION_IN_MIN = 10
 CACHE_KEY_PREFIX = "fpw:"
 
+# 1. "Lease Time": How long the job can RUN.
+LOCK_LEASE_TIME=300
+# 2. "Wait Time": How long a new job can WAIT IN LINE.
+LOCK_WAIT_TIME=30
+
+TEMPLATE_HOOK_ERROR_KEY = "error"
+TEMPLATE_HOOK_DOCTYPE_KEY = "doctype"
+TEMPLATE_HOOK_DOCTYPE_NAME_KEY = "doctype_name"
+
 def create_cache_key(k:str):
     return f'{CACHE_KEY_PREFIX}{k}'
 
@@ -30,7 +39,6 @@ def bot_settings():
     except Exception as e:
         logger.error("Failed to fetch Bot Settings: %s", str(e))
         frappe.throw(frappe._("Failed to fetch Bot Settings: {0}").format(str(e)))
-
 
 def save_whatsapp_session(wa_id: str, sid: str, user: str, desired_ttl_minutes: int|None=None, created_from: str|None=None):
     """Persist mapping in DocType and cache. TTL chosen as min(desired ttl, Frappe session remaining)."""
@@ -106,13 +114,12 @@ def save_whatsapp_session(wa_id: str, sid: str, user: str, desired_ttl_minutes: 
 
     return True
 
-
-
 def frappe_recursive_renderer(template_dict: dict, hook_path: str, hook_arg: object, ext_hook_processor: object) -> dict:
     """
     It does two things:
     1. Gets the business context from the hook.
-    2. Recursively renders the template using frappe.render_template, which
+    2. Gets the dt, dn from template or params 
+    3. Recursively renders the template using frappe.render_template, which
        adds the global Frappe context automatically.
     """
     
@@ -127,15 +134,36 @@ def frappe_recursive_renderer(template_dict: dict, hook_path: str, hook_arg: obj
             )
             business_context = response.template_body.render_template_payload 
         except Exception as e:
-            frappe.log_error(message=f"pywce template hook failed: {hook_path}", title="Frappe Recursive Renderer Hook Error")
-            business_context = {"hook_error": str(e)}
+            frappe.log_error(title="Hook RecursiveRenderer Error")
+            business_context = {TEMPLATE_HOOK_ERROR_KEY: str(e)}
 
-    # 2. Define the recursive rendering function
+    doc_context = {}
+    try:
+        doc_type = business_context.pop(TEMPLATE_HOOK_DOCTYPE_KEY, None)
+        doc_name = business_context.pop(TEMPLATE_HOOK_DOCTYPE_NAME_KEY, None)
+
+        if not doc_type and not doc_name:
+            params = template_dict.get("params", {}) or {}
+            doc_type = params.get(TEMPLATE_HOOK_DOCTYPE_KEY, None)
+            doc_name = params.get(TEMPLATE_HOOK_DOCTYPE_NAME_KEY, None)
+        
+        if doc_type and doc_name:
+            loaded_doc = frappe.get_doc(doc_type, doc_name)
+            doc_context = {"doc": loaded_doc}
+
+    except Exception:
+        frappe.log_error(title="Hook RecursiveRenderer DocLoad Error")
+        doc_context = {"doc": None}
+
+    # Combine all contexts
+    final_context = {
+        **doc_context, 
+        **business_context
+    }
+
     def render_recursive(value):
         if isinstance(value, str):
-            # We pass the business_context. Frappe automatically
-            # merges it with the global Frappe context.
-            return frappe.render_template(value, business_context)
+            return frappe.render_template(value, final_context)
         
         elif isinstance(value, dict):
             return {key: render_recursive(val) for key, val in value.items()}
@@ -145,5 +173,4 @@ def frappe_recursive_renderer(template_dict: dict, hook_path: str, hook_arg: obj
         
         return value
 
-    # 3. Start the recursion on the whole template dictionary
     return render_recursive(template_dict)
