@@ -1,14 +1,17 @@
 import datetime
 import json
+
 import frappe
-import frappe.utils.logger
 from frappe.sessions import get_expiry_in_seconds
 from frappe.utils import now_datetime
 
-from frappe_pywce.managers import FrappeRedisSessionManager
 from pywce import HookUtil, SessionConstants
 
+from frappe_pywce.managers import FrappeRedisSessionManager
+from frappe_pywce.pywce_logger import app_logger as logger
+
 # constants
+LOGIN_LINK_EXPIRE_AFTER_IN_MIN = 5
 LOGIN_DURATION_IN_MIN = 10
 CACHE_KEY_PREFIX = "fpw:"
 
@@ -24,15 +27,8 @@ TEMPLATE_HOOK_DOCTYPE_NAME_KEY = "doctype_name"
 def create_cache_key(k:str):
     return f'{CACHE_KEY_PREFIX}{k}'
 
-def get_logger():
-    frappe.utils.logger.set_log_level("DEBUG")
-    logger = frappe.logger("frappe_pywce", allow_site=True)
-
-    return logger
-
 def bot_settings():
     """Fetch Bot Settings from Frappe Doctype 'ChatBot Config'"""
-    logger = get_logger()
     try:
         settings = frappe.get_single("ChatBot Config")
         return settings
@@ -42,7 +38,6 @@ def bot_settings():
 
 def save_whatsapp_session(wa_id: str, sid: str, user: str, desired_ttl_minutes: int|None=None, created_from: str|None=None):
     """Persist mapping in DocType and cache. TTL chosen as min(desired ttl, Frappe session remaining)."""
-    logger = get_logger()
     session_manager = FrappeRedisSessionManager()
 
     desired_ttl_minutes = desired_ttl_minutes or LOGIN_DURATION_IN_MIN
@@ -59,6 +54,7 @@ def save_whatsapp_session(wa_id: str, sid: str, user: str, desired_ttl_minutes: 
             remaining_seconds = session_expiry_seconds
         else:
             remaining_seconds = session_expiry_seconds
+            
     except Exception:
         remaining_seconds = None
 
@@ -84,15 +80,20 @@ def save_whatsapp_session(wa_id: str, sid: str, user: str, desired_ttl_minutes: 
             "created_from": created_from or frappe.local.request_ip or ""
         })
         doc.insert(ignore_permissions=True)
+        
+        logger.debug("Created WhatsApp Session: %s", doc.name)
 
     except frappe.DuplicateEntryError:
-        # update existing record instead of insert
         doc = frappe.get_doc("WhatsApp Session", wa_id)
         doc.sid = sid
         doc.user = user
         doc.expires_on = expires_on
         doc.status = "active"
         doc.save(ignore_permissions=True)
+
+    except:
+        frappe.log_error(title="WhatsAppSession Creation Error")
+        return False
 
     session_data = {
         "sid": sid,
@@ -109,10 +110,10 @@ def save_whatsapp_session(wa_id: str, sid: str, user: str, desired_ttl_minutes: 
     try:
         payload = json.dumps({"sid": sid, "user": user, "expires_on": expires_on})
         frappe.cache.set_value(create_cache_key(f"session:{wa_id}"), payload, expires_in_sec=ttl_seconds)
+        return True
     except Exception:
         logger.debug("Unable to set cache for wa_id=%s", wa_id)
-
-    return True
+        return False
 
 def frappe_recursive_renderer(template_dict: dict, hook_path: str, hook_arg: object, ext_hook_processor: object) -> dict:
     """
@@ -123,7 +124,7 @@ def frappe_recursive_renderer(template_dict: dict, hook_path: str, hook_arg: obj
        adds the global Frappe context automatically.
     """
     
-    # 1. Get Business Context (from the template hook)
+    # Get Business Context (from the template hook)
     business_context = {}
     if hook_path:
         try:
@@ -137,6 +138,7 @@ def frappe_recursive_renderer(template_dict: dict, hook_path: str, hook_arg: obj
             frappe.log_error(title="Hook RecursiveRenderer Error")
             business_context = {TEMPLATE_HOOK_ERROR_KEY: str(e)}
 
+    # Get doctype context (if available)
     doc_context = {}
     try:
         doc_type = business_context.pop(TEMPLATE_HOOK_DOCTYPE_KEY, None)

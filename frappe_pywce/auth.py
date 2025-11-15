@@ -6,12 +6,10 @@ import frappe.utils.data
 
 from pywce import SessionConstants
 
-from frappe_pywce.util import create_cache_key, get_logger
+from frappe_pywce.util import create_cache_key
 from frappe_pywce.security import verify_webhook_signature
 from frappe_pywce.config import get_engine_config
-
-
-logger = get_logger()
+from frappe_pywce.pywce_logger import app_logger as logger
 
 def whatsapp_session_hook():
     """

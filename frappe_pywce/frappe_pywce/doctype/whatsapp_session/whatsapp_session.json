@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "format:WA.S.{{wa_id}}",
+ "autoname": "field:wa_id",
  "creation": "2025-11-13 10:45:38.938343",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -91,11 +91,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-13 10:53:36.849969",
+ "modified": "2025-11-15 15:38:17.265021",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "WhatsApp Session",
- "naming_rule": "Expression",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

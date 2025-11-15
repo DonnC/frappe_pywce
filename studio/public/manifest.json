@@ -1,6 +1,6 @@
 {
-  "short_name": "Pywce Emulator",
-  "name": "A pywce WhatsApp emulator for local testing",
+  "short_name": "Pywce Studio",
+  "name": "A pywce library builder or studio app",
   "icons": [
     {
       "src": "favicon.ico",

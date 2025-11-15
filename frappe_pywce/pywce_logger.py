@@ -1,4 +1,5 @@
 import frappe
+import frappe.utils.logger
 import logging
 
 def setup_pywce_logging_for_frappe():
@@ -22,3 +23,12 @@ def setup_pywce_logging_for_frappe():
 
     frappe_logger.addHandler(pywce_root_logger.handlers[0])
     frappe_logger.debug("Pywce logging has been integrated with Frappe's logging system.")
+
+
+def _get_logger():
+    frappe.utils.logger.set_log_level("DEBUG")
+    logger = frappe.logger("frappe_pywce", allow_site=True)
+
+    return logger
+
+app_logger = _get_logger()

@@ -1,8 +1,11 @@
 import json
+from typing import Dict, Any, List, Optional, Type, TypeVar
+
+import frappe
 
 from pywce import ISessionManager, VisualTranslator, storage, template
-import frappe
-from typing import Dict, Any, List, Optional, Type, TypeVar
+
+from frappe_pywce.pywce_logger import app_logger as logger
 
 T = TypeVar("T")
 
@@ -31,7 +34,8 @@ class FrappeStorageManager(storage.IStorageManager):
         self._ensure_templates_loaded()
     
     # might add caching
-    def _load_templates_from_db(self):    
+    def _load_templates_from_db(self):
+        # TODO: May load direct from DocType field instead of re-fetching
         try:
             if not self.flow_json:
                 raise Exception(f"No flow json found or is empty.")
@@ -63,17 +67,14 @@ class FrappeStorageManager(storage.IStorageManager):
         self._ensure_templates_loaded()
         return name in self._TEMPLATES
 
-    def get(self, name: str) -> template.EngineTemplate:
-        self._ensure_templates_loaded()
-
-        template_data = self._TEMPLATES.get(name)
-        if not template_data:
-            return None
-        
+    def get(self, name: str) -> template.EngineTemplate:    
         try:
+            self._ensure_templates_loaded()
+            template_data = self._TEMPLATES.get(name)
             return template.Template.as_model(template_data)
-        except Exception as e:
-            frappe.log_error(f"Pydantic validation error for '{name}': {e}")
+        except Exception:
+            frappe.log_error(title="Get Template Error")
+            logger.critical("Error fetching template: %s", name, exc_info=True)
             return None
 
     def triggers(self) -> List[template.EngineRoute]:

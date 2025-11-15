@@ -1,11 +1,11 @@
 import frappe
 
 from frappe_pywce.managers import FrappeRedisSessionManager, FrappeStorageManager
-from frappe_pywce.util import bot_settings, frappe_recursive_renderer, get_logger
+from frappe_pywce.util import bot_settings, frappe_recursive_renderer
+from frappe_pywce.pywce_logger import app_logger
 
 from pywce import Engine, client, EngineConfig, HookArg
 
-logger = get_logger()
 
 LOCAL_EMULATOR_URL = "http://localhost:3001/send-to-emulator"
 
@@ -57,5 +57,5 @@ def get_engine_config() -> Engine:
         return Engine(config=_eng_config)
 
     except Exception as e:
-        logger.error("Failed to load engine config", exc_info=True)
+        app_logger.error("Failed to load engine config", exc_info=True)
         frappe.throw("Failed to load engine config", exc=e)

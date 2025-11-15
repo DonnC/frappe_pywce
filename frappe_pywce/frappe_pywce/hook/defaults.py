@@ -1,11 +1,12 @@
 import frappe
 import frappe.auth
-from frappe_pywce.util import  get_logger, save_whatsapp_session
 
-from pywce import SessionConstants
+from frappe_pywce.util import  save_whatsapp_session
+from frappe_pywce.pywce_logger import app_logger
 from frappe_pywce.managers import FrappeRedisSessionManager
 
-logger = get_logger()
+from pywce import SessionConstants
+
 
 session_manager = FrappeRedisSessionManager()
 

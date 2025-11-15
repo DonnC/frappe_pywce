@@ -19,9 +19,9 @@
   "process_in_background",
   "btn_launch_emulator",
   "login_settings_section",
-  "login_enabled",
-  "column_break_hwhz",
   "validate_webhook_payload",
+  "help_section",
+  "help",
   "flow_builder_settings_section",
   "flow_json"
  ],
@@ -79,17 +79,6 @@
    "label": "Security Settings"
   },
   {
-   "default": "0",
-   "description": "check if chatbot processes user login",
-   "fieldname": "login_enabled",
-   "fieldtype": "Check",
-   "label": "Login enabled?"
-  },
-  {
-   "fieldname": "column_break_hwhz",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "chatbot_mobile_number",
    "fieldtype": "Phone",
    "label": "ChatBot Mobile Number",
@@ -138,13 +127,27 @@
    "print_hide": 1,
    "read_only": 1,
    "report_hide": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "help_section",
+   "fieldtype": "Section Break",
+   "label": "Help",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "help",
+   "fieldtype": "HTML",
+   "is_virtual": 1,
+   "no_copy": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-11-13 10:40:20.696323",
+ "modified": "2025-11-15 15:53:35.517493",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "ChatBot Config",

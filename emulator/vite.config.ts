@@ -19,9 +19,7 @@ export default defineConfig(({ mode }) => ({
       "/files": { target: frappeHost, changeOrigin: true },
     },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(
-    Boolean
-  ),
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
