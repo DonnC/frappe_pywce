@@ -28,7 +28,7 @@ The React UI is "dumb" - it contains **zero** WhatsApp API parsing logic. The Br
 
 ### 1. Run the React UI (This Project)
 
-This is a standard React + Vite + TypeScript project built with Lovable.
+This is a standard React + Vite + TypeScript project.
 
 ```bash
 npm install
@@ -43,7 +43,7 @@ The UI will be available at `http://localhost:8080`
 
 The bridge server **cannot** run inside this React project. It's a separate Node.js/Express server.
 
-Check out [here](../emulator-bridge)
+Check out [here](../emulator)
 
 The bridge will run on `http://localhost:3001`
 
@@ -104,7 +104,7 @@ curl -X POST http://localhost:3001/send-to-emulator \
   }'
 ```
 
-**See `BRIDGE_SERVER_CODE.md` for complete `curl` examples for all message types.**
+**See bridge project's `README.md` for complete `curl` examples for all message types.**
 
 ### Testing Bot Integration
 
@@ -209,7 +209,7 @@ src/
 ## 🎨 Features
 
 - ✅ **WhatsApp-inspired UI** with message bubbles, timestamps, and authentic styling
-- ✅ **6 Message Types**: Text, Text with Preview, Location, Buttons, Lists, CTA URLs
+- ✅ **Message Types**: Text, Text with Preview, Location, Buttons, Lists, CTA URLs and more
 - ✅ **Real-time Socket.io** connection with status indicator
 - ✅ **Demo Mode** for standalone testing without a bot
 - ✅ **TypeScript** with full type safety

@@ -1,0 +1,40 @@
+{% extends "templates/web.html" %} 
+
+{% block page_content %}
+
+<div class="page-card" style="margin-top: 30px">
+  <div class="page-card-head">
+    <span
+      class="indicator {% if show_whatsapp_button %}green{% else %}blue{% endif %}"
+    >
+      {{ message_title or "Login To Account" }}
+    </span>
+  </div>
+  <div class="page-card-content">
+    <p>{{ message }}</p>
+
+    {% if show_login_button and full_login_url %}
+    <a
+      href="{{ full_login_url }}"
+      class="btn btn-primary btn-lg"
+      style="margin-top: 15px; width: 100%"
+    >
+      Login
+    </a>
+    {% endif %} {% if show_whatsapp_button and whatsapp_link %}
+    <p class="text-muted" style="margin-top: 15px">
+      Click the button below to return to your chat.
+    </p>
+
+    <a
+      href="{{ whatsapp_link }}"
+      class="btn btn-primary btn-lg"
+      style="margin-top: 15px; width: 100%"
+    >
+      <i class="fa fa-whatsapp"></i> Back to Chatbot
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
