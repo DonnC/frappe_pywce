@@ -117,15 +117,13 @@
    "collapsible": 1,
    "fieldname": "flow_builder_settings_section",
    "fieldtype": "Section Break",
-   "label": "Flow Builder Settings",
-   "read_only": 1
+   "label": "Flow Builder Settings"
   },
   {
    "fieldname": "flow_json",
    "fieldtype": "JSON",
    "label": "Flow JSON",
    "print_hide": 1,
-   "read_only": 1,
    "report_hide": 1
   },
   {
@@ -147,7 +145,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-11-15 15:53:35.517493",
+ "modified": "2025-11-15 18:43:00.294321",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "ChatBot Config",

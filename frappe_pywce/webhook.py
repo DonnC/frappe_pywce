@@ -60,7 +60,7 @@ def _handle_webhook():
 
     try:
         payload_dict = json.loads(payload.decode('utf-8'))
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         frappe.throw("Invalid webhook data", exc=frappe.ValidationError)
 
     should_run_in_bg = frappe.db.get_single_value("ChatBot Config", "process_in_background")
