@@ -7,7 +7,7 @@ const frappeHost = "http://localhost:8000";
 
 export default defineConfig(({ mode }) => ({
   server: {
-    port: 8080,
+    port: 8081,
     proxy: {
       "/api": {
         target: frappeHost,
@@ -19,9 +19,7 @@ export default defineConfig(({ mode }) => ({
       "/files": { target: frappeHost, changeOrigin: true },
     },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(
-    Boolean
-  ),
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

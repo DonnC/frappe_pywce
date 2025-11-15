@@ -6,6 +6,14 @@
 tags
 node_modules
 __pycache__
+
 frappe_pywce/www/*.html
+
+# keep important files
+!frappe_pywce/www/whatsapp-bot-login.html
+
+
+frappe_pywce/public/studio/
 frappe_pywce/public/builder/
 frappe_pywce/public/emulator/
+lib/pywce/

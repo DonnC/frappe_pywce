@@ -1,19 +1,19 @@
 {
   "name": "frappe_pywce",
   "version": "1.0.0",
-  "description": "Pywce web UIs",
+  "description": "Frappe pywce web apps. It manages the emulator, studio and bridge for pywce whatsapp web client emulator.",
   "private": true,
   "main": "index.js",
   "scripts": {
-    "build": "cd emulator && yarn install && yarn build && cd ../builder && yarn install && yarn build",
-    "postinstall": "cd emulator && yarn install && cd ../builder && yarn install && cd ../bridge && npm install",
-    "dev": "concurrently \"npm:dev:emulator\" \"npm:dev:builder\" \"npm:dev:bridge\"",
+    "build": "cd studio && yarn install && yarn build && cd ../emulator && yarn install && yarn build",
+    "postinstall": "cd studio && yarn install && cd ../emulator && yarn install && cd ../bridge && npm install",
+    "dev": "concurrently \"npm:dev:studio\" \"npm:dev:emulator\" \"npm:dev:bridge\"",
     "dev:emulator": "cd emulator && yarn dev",
-    "dev:builder": "cd builder && yarn dev",
+    "dev:studio": "cd studio && yarn dev",
     "dev:bridge": "node --watch bridge/index.js"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^9.2.1"
   },
   "keywords": [
     "pywce",

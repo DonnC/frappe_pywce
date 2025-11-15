@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    outDir: `../frappe_pywce/public/builder`,
+    outDir: `../frappe_pywce/public/studio`,
     emptyOutDir: true,
     target: "es2015",
     sourcemap: true,

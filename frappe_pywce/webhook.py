@@ -1,15 +1,15 @@
-import hashlib
-import hmac
 import json
 
+import redis
+import redis.exceptions
+
 import frappe
-from frappe.auth import LoginManager
-import frappe.utils.logger
+import frappe.utils
 
 from frappe_pywce.config import get_engine_config, get_wa_config
+from frappe_pywce.util import CACHE_KEY_PREFIX, LOCK_WAIT_TIME, LOCK_LEASE_TIME, bot_settings, create_cache_key
+from frappe_pywce.pywce_logger import app_logger as logger
 
-frappe.utils.logger.set_log_level("DEBUG")
-logger = frappe.logger("frappe_pywce", allow_site=True)
 
 def _verifier():
     """
@@ -21,34 +21,15 @@ def _verifier():
 
     mode, token, challenge = params.get("hub.mode"), params.get("hub.verify_token"), params.get("hub.challenge")
 
-    if get_wa_config().util.webhook_challenge(mode, challenge, token):
+    if get_wa_config(bot_settings()).util.webhook_challenge(mode, challenge, token):
         from werkzeug.wrappers import Response
         return Response(challenge)
 
     frappe.throw("Webhook verification challenge failed", exc=frappe.PermissionError)
 
-def _verify_webhook_signature(payload: bytes, received_sig: str):
-    if not received_sig:
-        frappe.throw("Missing X-Hub-Signature-256 header", exc=frappe.ValidationError)
 
-    expected_sig = "sha256=" + hmac.new(get_wa_config().config.app_secret.encode("utf-8"), payload, hashlib.sha256).hexdigest()
-
-    if not hmac.compare_digest(expected_sig, received_sig):
-        frappe.log_error(title="Chatbot Webhook Signature")
-        frappe.throw("Invalid webhook signature", exc=frappe.ValidationError)
-
-def _internal_webhook_handler(user:str, payload, headers):
+def _internal_webhook_handler(wa_id:str, payload:dict):
     """Process webhook data internally
-
-    If user is authenticated in the session, get current user and call
-
-    frappe.set_user(...)
-
-    This is because, each webhook requests comes in as a guest request since its initiated by whatsapp
-
-    frappe.set_user(..) is called if and only if all secure checks are valid
-
-    Its reset back when a request is sent back to whatsapp
 
     Args:
         payload (dict): webhook raw payload data to process
@@ -56,40 +37,53 @@ def _internal_webhook_handler(user:str, payload, headers):
     """
 
     try:
-        frappe.set_user(user)
-        get_engine_config().process_webhook(payload)
+        lock_key =  create_cache_key(f"lock:{wa_id}")
+        
+        with frappe.cache().lock(lock_key, timeout=LOCK_LEASE_TIME, blocking_timeout=LOCK_WAIT_TIME):
+            get_engine_config().process_webhook(payload)
+
+    except redis.exceptions.LockError:
+        logger.critical("FIFO Enforcement: Dropped concurrent message for %s due to lock error.", wa_id)
 
     except Exception:
         frappe.log_error(title="Chatbot Webhook E.Handler")
 
+
+def _on_job_success(**kwargs):
+    logger.debug("Webhook job completed successfully: %s", kwargs)
+
+def _on_job_error(**kwargs):
+    logger.debug("Webhook job failed: %s", kwargs)
+
 def _handle_webhook():
     payload = frappe.request.data
-    headers = dict(frappe.request.headers)
-
-    normalized_headers = {k.lower(): v for k, v in headers.items()}
-
-    # _verify_webhook_signature(payload, headers.get("x-hub-signature-256"))
 
     try:
         payload_dict = json.loads(payload.decode('utf-8'))
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         frappe.throw("Invalid webhook data", exc=frappe.ValidationError)
 
-    should_run_in_bg = frappe.db.get_single_value("PywceConfig", "process_in_background")
+    should_run_in_bg = frappe.db.get_single_value("ChatBot Config", "process_in_background")
 
-    wa_user = get_wa_config().util.get_wa_user(payload_dict)
+    wa_user = get_wa_config(bot_settings()).util.get_wa_user(payload_dict)
 
     if wa_user is None:
         return "Invalid user"
+    
+    job_id = f"{wa_user.wa_id}:{wa_user.msg_id}"
+    
+    logger.debug("Starting a new webhook job id: %s", job_id)
 
     frappe.enqueue(
         _internal_webhook_handler,
-        queue="short",
         now=should_run_in_bg == 0,
-        user=frappe.session.user,
+
         payload=payload_dict,
-        headers=normalized_headers,
-        job_id=f"fpw:{wa_user.wa_id}:{wa_user.msg_id}"
+        wa_id=wa_user.wa_id,
+
+        job_id= create_cache_key(job_id),
+        on_success=_on_job_success,
+        on_failure=_on_job_error
     )
 
     return "OK"
@@ -100,7 +94,7 @@ def get_webhook():
 
 @frappe.whitelist()
 def clear_session():
-    frappe.cache.delete_keys("fpw:")
+    frappe.cache.delete_keys(CACHE_KEY_PREFIX)
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
 def webhook():

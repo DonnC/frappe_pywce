@@ -11,10 +11,8 @@ const { constructWebhookPayload } = require("./utils/webhookConstructor");
 const PORT = 3001;
 
 // CONFIGURATION: Change this to your bot's webhook URL
-// simplex.local:8000
-const BOT_WEBHOOK_URL =
-  process.env.BOT_WEBHOOK_URL ||
-  "http://localhost:8000/api/method/frappe_pywce.webhook.webhook";
+const BOT_WEBHOOK_URL = process.env.BOT_WEBHOOK_URL || "http://localhost:8000/api/method/frappe_pywce.webhook.webhook";
+
 console.log(`Forwarding replies to: ${BOT_WEBHOOK_URL}`);
 
 const app = express();
@@ -86,12 +84,12 @@ io.on("connection", (socket) => {
 
 server.listen(PORT, () => {
   console.log(`
-╔═══════════════════════════════════════════════════════╗
-║   🚀 WhatsApp Bridge Server Running                   ║
-║                                                       ║
-║   Port: ${PORT}                                          ║
-║   Bot sends to: POST /send-to-emulator                ║
-║   Bot receives at: ${BOT_WEBHOOK_URL}      ║
-╚═══════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════
+║   🚀 Local WhatsApp Bridge Server Running
+║                                                                                                         
+║   Port: ${PORT}
+║   Bot sends to: POST /send-to-emulator
+║   Bot receives at: ${BOT_WEBHOOK_URL}
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════
   `);
 });

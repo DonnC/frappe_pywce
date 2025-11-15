@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:WLT-{######}",
+ "creation": "2025-11-13 13:00:39.797897",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "token",
+  "wa_id",
+  "expires_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "token",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Token",
+   "reqd": 1
+  },
+  {
+   "fieldname": "wa_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "WhatsApp ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "expires_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Expires On",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-11-13 13:02:30.819323",
+ "modified_by": "Administrator",
+ "module": "Frappe Pywce",
+ "name": "WhatsApp Login Token",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Guest",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

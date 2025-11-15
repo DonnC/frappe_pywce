@@ -1,9 +1,18 @@
 import json
-from pywce import ISessionManager, VisualTranslator, storage, template
-import frappe
 from typing import Dict, Any, List, Optional, Type, TypeVar
 
+import frappe
+
+from pywce import ISessionManager, VisualTranslator, storage, template
+
+from frappe_pywce.pywce_logger import app_logger as logger
+
 T = TypeVar("T")
+
+CACHE_KEY_PREFIX = "fpw:"
+
+def create_cache_key(k:str):
+    return f'{CACHE_KEY_PREFIX}{k}'
 
 class FrappeStorageManager(storage.IStorageManager):
     """
@@ -20,32 +29,24 @@ class FrappeStorageManager(storage.IStorageManager):
     START_MENU: Optional[str] = None
     REPORT_MENU: Optional[str] = None
     
-    def __init__(self):
-        self.cache_key = "fpw:flow_templates"
+    def __init__(self, flow_json):
+        self.flow_json = flow_json
+        self._ensure_templates_loaded()
     
-    def _load_templates_from_cache_or_db(self) -> Dict:
-        cached_templates = frappe.cache().get(self.cache_key)
-        if cached_templates:
-            return cached_templates
-        
+    # might add caching
+    def _load_templates_from_db(self):
+        # TODO: May load direct from DocType field instead of re-fetching
         try:
-            flow_json = frappe.get_single_value(
-                "ChatBot Config", 
-                "flow_json"
-            )
-            if not flow_json:
-                raise Exception(f"Flow '{self.flow_name}' not found or is empty.")
+            if not self.flow_json:
+                raise Exception(f"No flow json found or is empty.")
             
             ui_translator = VisualTranslator()
-            self._TEMPLATES, self._TRIGGERS = ui_translator.translate(flow_json)
-
+            self._TEMPLATES, self._TRIGGERS = ui_translator.translate(self.flow_json)
             self.START_MENU = ui_translator.START_MENU
             self.REPORT_MENU = ui_translator.REPORT_MENU
 
-            frappe.cache().set(self.cache_key, self._TEMPLATES)
-
         except Exception as e:
-            frappe.log_error(str(e), f"FrappeStorageManager Load Error")
+            frappe.log_error(title=f"FrappeStorageManager Load Error")
             self._TEMPLATES = {}
 
     def _ensure_templates_loaded(self):
@@ -54,14 +55,10 @@ class FrappeStorageManager(storage.IStorageManager):
         respecting the lazy-load approach.
         """
         if not self._TEMPLATES:
-            self._load_templates_from_cache_or_db()
+            self._load_templates_from_db()
 
     def load_templates(self) -> None:
-        """
-        This method is now just a way to "force reload" the cache.
-        """
-        frappe.cache().delete(self.cache_key)
-        self._load_templates_from_cache_or_db()
+        self._load_templates_from_db()
 
     def load_triggers(self) -> None:
         pass
@@ -70,21 +67,22 @@ class FrappeStorageManager(storage.IStorageManager):
         self._ensure_templates_loaded()
         return name in self._TEMPLATES
 
-    def get(self, name: str) -> template.EngineTemplate:
-        self._ensure_templates_loaded()
-        
-        template_data = self._TEMPLATES.get(name)
-        if not template_data:
-            return None
-        
+    def get(self, name: str) -> template.EngineTemplate:    
         try:
+            self._ensure_templates_loaded()
+            template_data = self._TEMPLATES.get(name)
             return template.Template.as_model(template_data)
-        except Exception as e:
-            frappe.log_error(f"Pydantic validation error for '{name}': {e}")
+        except Exception:
+            frappe.log_error(title="Get Template Error")
+            logger.critical("Error fetching template: %s", name, exc_info=True)
             return None
 
     def triggers(self) -> List[template.EngineRoute]:
         return self._TRIGGERS
+    
+    def __repr__(self):
+        return f"FrappeStorageManager(start_menu={self.START_MENU}, report_menu={self.REPORT_MENU}, \
+            templates_count={len(self._TEMPLATES.keys())}, triggers_count={len(self._TRIGGERS)})"
 
 
 class FrappeRedisSessionManager(ISessionManager):
@@ -97,7 +95,7 @@ class FrappeRedisSessionManager(ISessionManager):
     global data has default expiry set to 30 mins
     """
     _global_expiry = 86400
-    _global_key_ = "fpw:global"
+    _global_key_ = create_cache_key("global")
 
     def __init__(self, ttl=1800):
         """Initialize session manager with default expiry time.
@@ -107,7 +105,7 @@ class FrappeRedisSessionManager(ISessionManager):
 
     def _get_prefixed_key(self, session_id, key=None):
         """Helper to create prefixed cache keys."""
-        k = f"fpw:{session_id}"
+        k = create_cache_key(session_id)
 
         if key is None:
             return k
@@ -150,7 +148,7 @@ class FrappeRedisSessionManager(ISessionManager):
 
     @property
     def prop_key(self) -> str:
-        return "fpw:props"
+        return create_cache_key("props")
 
     def session(self, session_id: str) -> "FrappeRedisSessionManager":
         """Initialize session in Redis if it doesn't exist."""

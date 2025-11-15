@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js"
   },
-  "keywords": ["whatsapp", "wce", "whatsapp-api", "webhook"],
+  "keywords": ["whatsapp", "wce", "whatsapp-api", "webhook", "pywce"],
   "author": "donnclab",
   "license": "MIT",
   "dependencies": {
