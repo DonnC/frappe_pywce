@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => ({
     react(),
     frappeVitePlugin({
       port: 8081,
+      appName: "Pywce-Emulator",
+      prefixEndpoint: "/bot/emulator",
     }),
   ],
   resolve: {

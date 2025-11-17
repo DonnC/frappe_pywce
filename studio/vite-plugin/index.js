@@ -7,6 +7,8 @@ import {
 /**
  * @typedef {object} FrappeVitePluginOptions
  * @property {number} [port]
+ * @property {string} [appName]
+ * @property {string} [prefixEndpoint]
  */
 
 /**
@@ -26,12 +28,14 @@ export default function frappeVitePlugin(pluginOptions = {}) {
         8000;
 
     const vite_port = pluginOptions.port || 8080;
+    const app_name = pluginOptions.appName || "";
+    const prefix_endpoint = pluginOptions.prefixEndpoint || "";
 
     const target = `http://${site_name}:${backendPort}`;
-    const finalUrl = `http://${site_name}:${vite_port}`;
+    const finalUrl = `http://${site_name}:${vite_port}${prefix_endpoint}`;
 
     console.log(``);
-    console.log(`🔗 Frappe Vite Auto-Proxy`);
+    console.log(`🔗 Frappe ${app_name} Vite Auto-Proxy`);
     console.log(`➡ Backend: ${target}`);
     console.log(`➡ Dev UI:  ${finalUrl}`);
     console.log(``);

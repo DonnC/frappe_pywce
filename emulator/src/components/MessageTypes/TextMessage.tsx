@@ -1,13 +1,14 @@
 import { TextPayload } from '@/types/message';
+import { parseWhatsAppFormatting } from '@/lib/whatsappFormatter';
 
 interface TextMessageProps {
-    payload: TextPayload;
+  payload: TextPayload;
 }
 
 export const TextMessage = ({ payload }: TextMessageProps) => {
-    return (
-        <div className="whitespace-pre-wrap break-words">
-            {payload.body}
-        </div>
-    );
+  return (
+    <div className="break-words space-y-1">
+      {parseWhatsAppFormatting(payload.body)}
+    </div>
+  );
 };

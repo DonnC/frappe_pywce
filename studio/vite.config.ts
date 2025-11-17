@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => ({
     react(),
     frappeVitePlugin({
       port: 8080,
+      appName: "Pywce-Studio",
+      prefixEndpoint: "/bot/studio",
     }),
   ],
   resolve: {
