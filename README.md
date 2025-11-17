@@ -95,7 +95,7 @@ To build the UI assets for production, run this single command:
 $ bench build --app frappe_pywce
 ```
 
-This will bundle the React UIs, and they will be accessible at `http://your-frappe-site.com/bot/builder`.
+This will bundle the React UIs, and they will be accessible at `http://your-frappe-site.com/bot/studio`.
 
 -----
 
