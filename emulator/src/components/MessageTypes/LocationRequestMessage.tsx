@@ -2,6 +2,7 @@ import { InteractiveLocationRequestPayload } from '@/types/message';
 import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 import { UIReply } from '@/types/message';
+import { parseWhatsAppFormatting } from '@/lib/whatsappFormatter';
 
 interface LocationRequestMessageProps {
   payload: InteractiveLocationRequestPayload;
@@ -17,7 +18,7 @@ export const LocationRequestMessage = ({ payload, contextMessageId, onReply }: L
       payload: {
         latitude: -17.8216,
         longitude: 31.0492,
-        name: 'Harare Location [mock]',
+        name: 'Dummy Location',
         address: 'Harare, Zimbabwe',
       },
     });
@@ -26,11 +27,11 @@ export const LocationRequestMessage = ({ payload, contextMessageId, onReply }: L
   return (
     <div className="space-y-3">
       {payload.header && (
-        <div className="font-semibold text-sm">{payload.header}</div>
+        <div className="font-semibold text-sm space-y-1">{parseWhatsAppFormatting(payload.header)}</div>
       )}
-      <div className="whitespace-pre-wrap break-words">{payload.body}</div>
+      <div className="break-words space-y-1">{parseWhatsAppFormatting(payload.body)}</div>
       {payload.footer && (
-        <div className="text-xs opacity-70">{payload.footer}</div>
+        <div className="text-xs opacity-70 space-y-1">{parseWhatsAppFormatting(payload.footer)}</div>
       )}
       <Button
         onClick={handleSendLocation}
@@ -39,7 +40,7 @@ export const LocationRequestMessage = ({ payload, contextMessageId, onReply }: L
         size="sm"
       >
         <MapPin className="w-4 h-4 mr-2" />
-        Send Location
+        Send Dummy Location
       </Button>
     </div>
   );

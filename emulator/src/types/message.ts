@@ -2,6 +2,24 @@
 
 export type MessageDirection = 'in' | 'out';
 
+export interface ReadReceiptPayload {
+  status: 'read';
+  message_id: string;
+}
+
+export interface TypingPayload {
+  typing_indicator: { type: 'text' };
+  message_id: string;
+}
+
+export interface ReactionPayload {
+  type: 'reaction';
+  reaction: {
+    emoji: string;
+    message_id: string;
+  };
+}
+
 export interface TextPayload {
   body: string;
 }
@@ -89,12 +107,13 @@ export type MessageType =
   | 'interactive_button' 
   | 'interactive_list' 
   | 'interactive_cta'
-  | 'interactive_location_request';
+  | 'interactive_location_request'
+  | 'reaction';
 
 export interface SimpleUIMessage {
   id: string;
   type: MessageType;
-  payload: TextPayload | TextPreviewPayload | ImagePayload | VideoPayload | DocumentPayload | LocationPayload | InteractiveButtonPayload | InteractiveListPayload | InteractiveCTAPayload | InteractiveLocationRequestPayload;
+  payload: ReadReceiptPayload | TypingPayload | ReactionPayload | TextPayload | TextPreviewPayload | ImagePayload | VideoPayload | DocumentPayload | LocationPayload | InteractiveButtonPayload | InteractiveListPayload | InteractiveCTAPayload | InteractiveLocationRequestPayload;
 }
 
 export interface ChatMessage {

@@ -9,6 +9,7 @@ import { LocationRequestMessage } from './MessageTypes/LocationRequestMessage';
 import { ButtonMessage } from './MessageTypes/ButtonMessage';
 import { ListMessage } from './MessageTypes/ListMessage';
 import { CtaMessage } from './MessageTypes/CtaMessage';
+import { TypingIndicator } from './MessageTypes/TypingIndicator';
 import { cn } from '@/lib/utils';
 
 interface MessageRendererProps {

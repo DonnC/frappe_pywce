@@ -5,7 +5,6 @@ import { DemoToolbar } from "@/components/DemoToolbar";
 import { ChatMessage, SimpleUIMessage, UIReply } from "@/types/message";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { useFrappeGetCall } from "frappe-react-sdk";
 
 const Index = () => {
   return (
@@ -25,8 +24,30 @@ const WhatsAppEmulator = () => {
     // Listen for messages from the bridge
     socket.on("ui_message", (simpleMessage: SimpleUIMessage) => {
       console.log("📨 Received message from bridge:", simpleMessage);
+
+      // TODO: fix handling of special message types
+      if ("status" in simpleMessage && simpleMessage.status === "read") {
+        toast.info("Bot marked message as read");
+        return;
+      }
+
+      if ("typing_indicator" in simpleMessage) {
+        toast.info("Bot is typing...");
+        return;
+      }
+
+      if ("type" in simpleMessage && simpleMessage.type === "reaction") {
+        const emoji = "👍";
+        toast.info(`Bot reacted: ${emoji}`);
+        return;
+      }
+
+      if ("context" in simpleMessage && simpleMessage.context) {
+        toast.info("Bot replied to a message");
+      }
+
       addMessage(simpleMessage, "out");
-      toast.success("New message from bot");
+      // toast.success("New message from bot");
     });
 
     return () => {
@@ -116,7 +137,7 @@ const WhatsAppEmulator = () => {
     // Send to bridge
     if (socket) {
       socket.emit("ui_reply", reply);
-      toast.success("Reply sent to bot");
+      // toast.success("Reply sent to bot");
     } else {
       toast.error("Not connected to bridge server");
     }
@@ -124,18 +145,12 @@ const WhatsAppEmulator = () => {
 
   const handleAddDemoMessage = (demoMessage: SimpleUIMessage) => {
     addMessage(demoMessage, "out");
-    toast.info("Demo message added");
+    // toast.info("Demo message added");
   };
 
   const handleClearMessages = () => {
     setMessages([]);
     toast.info("Messages cleared");
-  };
-
-  const FetchingComponent = () => {
-    const { data } = useFrappeGetCall("ping");
-
-    return <div>Ping: {data?.message}</div>;
   };
 
   return (
@@ -148,10 +163,8 @@ const WhatsAppEmulator = () => {
             variant={isConnected ? "default" : "secondary"}
             className="text-xs"
           >
-            {isConnected ? "🟢 Connected" : "🔴 Frappe Offline"}
+            {isConnected ? "🟢 Connected" : "🔴 Bridge Offline"}
           </Badge>
-
-          <FetchingComponent />
         </div>
 
         {/* Chat Window */}

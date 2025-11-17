@@ -12,5 +12,12 @@
     "allowJs": true,
     "noUnusedLocals": false,
     "strictNullChecks": false
-  }
+  },
+  "include": [
+    "src/**/*",
+    "src/index.ts",
+    "vitest.config.ts",
+    "vite-plugin/**/*.d.ts",
+    "frappe_pywce/emulator/vite-plugin/**/*.d.ts"
+  ],
 }

@@ -32,12 +32,33 @@ export const DemoToolbar = ({ onAddMessage, onClear }: DemoToolbarProps) => {
       type: 'text',
       payload: { body: 'Hello! This is a simple text message.' },
     },
+    formatting: {
+      id: `demo-${Date.now()}-1b`,
+      type: 'text',
+      payload: {
+        body: `*Bold Text*
+_Italic Text_
+~Strikethrough~
+\`Inline Code\`
+\`\`\`Monospace\`\`\`
+
+> This is a block quote
+
+- Bulleted item 1
+- Bulleted item 2
+
+1. Numbered item 1
+2. Numbered item 2
+
+*You can also _combine_ formats!*`,
+      },
+    },
     textPreview: {
       id: `demo-${Date.now()}-2`,
       type: 'text_preview',
       payload: {
-        body: 'Check out this link: https://github.com/DonnC',
-        preview: 'github.com/DonnC',
+        body: 'Check out this link: https://www.google.com',
+        preview: 'google.com',
       },
     },
     location: {
@@ -94,11 +115,11 @@ export const DemoToolbar = ({ onAddMessage, onClear }: DemoToolbarProps) => {
       id: `demo-${Date.now()}-6`,
       type: 'interactive_cta',
       payload: {
-        header: 'Visit Profile',
-        body: 'Click the button below to star, contribute or support my work!',
+        header: 'Visit Our Website',
+        body: 'Click the button below to learn more about our services.',
         footer: 'Thank you!',
-        displayText: 'Visit GitHub',
-        url: 'https://github.com/DonnC',
+        displayText: 'Visit Site',
+        url: 'https://www.google.com',
       },
     },
     image: {
@@ -123,7 +144,7 @@ export const DemoToolbar = ({ onAddMessage, onClear }: DemoToolbarProps) => {
       payload: {
         link: 'mock-link.pdf',
         filename: 'sample-document.pdf',
-        caption: 'Important PDF document',
+        caption: 'Important document',
       },
     },
     locationRequest: {
@@ -134,7 +155,7 @@ export const DemoToolbar = ({ onAddMessage, onClear }: DemoToolbarProps) => {
         body: 'Please share your location so we can find nearby stores.',
         footer: 'Your location is safe with us.',
       },
-    },
+    }
   };
 
   return (
@@ -168,6 +189,15 @@ export const DemoToolbar = ({ onAddMessage, onClear }: DemoToolbarProps) => {
               >
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Text
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onAddMessage(demoMessages.formatting)}
+                className="justify-start"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Formatting
               </Button>
               <Button
                 variant="outline"

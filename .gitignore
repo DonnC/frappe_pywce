@@ -8,6 +8,7 @@ node_modules
 __pycache__
 
 frappe_pywce/www/*.html
+frappe_pywce/www/**/*.html
 
 # keep important files
 !frappe_pywce/www/whatsapp-bot-login.html
