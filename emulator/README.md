@@ -2,6 +2,8 @@
 
 A modular WhatsApp chat interface emulator with a bridge server architecture for testing chatbots.
 
+> https://www.linkedin.com/pulse/how-build-single-page-applications-inside-frappe-apps-mohammed-amir-iikkf
+
 ## 🏗️ System Architecture
 
 ```
