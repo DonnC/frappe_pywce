@@ -48,12 +48,11 @@ def _internal_webhook_handler(wa_id:str, payload:dict):
     except Exception:
         frappe.log_error(title="Chatbot Webhook E.Handler")
 
+def _on_job_success(*args, **kwargs):
+    logger.debug("Webhook job completed successfully, args: %s, kwargs %s", args, kwargs)
 
-def _on_job_success(**kwargs):
-    logger.debug("Webhook job completed successfully: %s", kwargs)
-
-def _on_job_error(**kwargs):
-    logger.debug("Webhook job failed: %s", kwargs)
+def _on_job_error(*args, **kwargs):
+    logger.debug("Webhook job failed, args: %s, kwargs %s", args, kwargs)
 
 def _handle_webhook():
     payload = frappe.request.data
