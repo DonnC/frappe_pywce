@@ -15,12 +15,13 @@ I assume you have setup your configs and are in `local` environment as below.
 > Open the studio using the *Open Builder* button above
 
 1. Import the `studio.json` file on your studio portal
-![import](/frappe_pywce/example/import.png)
+![import](https://github.com/DonnC/frappe_pywce/blob/main/example/import.png)
 
 
 2. To test Login, go to the `Login Successful` node and under `Hooks` section, you can put any invoice name you have to test if its being fetched properly
-![login body](/frappe_pywce/example/login-body.png)
+![login body](https://github.com/DonnC/frappe_pywce/blob/main/example/login-body.png)
 
-    ![sale invoice](/frappe_pywce/example/sale-invoice.png)
+    ![sale invoice](https://github.com/DonnC/frappe_pywce/blob/main/example/sale-invoice.png)
+   
 
-3. Feel free to raise any issues on this
+4. Feel free to raise any issues on this
