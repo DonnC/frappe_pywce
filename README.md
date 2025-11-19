@@ -84,8 +84,13 @@ For contributing or running the UI locally with hot-reloading:
 
 This will launch the Vite server (usually on `localhost:8080`) which hot-reloads as you make changes and proxies all backend requests to your Frappe server.
 
-  * Builder UI: `http://localhost:8080`
-  * Emulator UI: `http://localhost:8081`
+  * Builder UI: `http://localhost:8080/bot/studio`
+  * Emulator UI: `http://localhost:8081/bot/emulator`
+
+3.  **Quick start**
+    You can quickly setup a bot by importing an eHailing chatbot and test it locally or build from there
+
+    Check the [example folder here](example)
 
 ### Production Build
 
