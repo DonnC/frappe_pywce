@@ -22,7 +22,6 @@ def setup_pywce_logging_for_frappe():
             pywce_root_logger.addHandler(handler)
 
     frappe_logger.addHandler(pywce_root_logger.handlers[0])
-    frappe_logger.debug("Pywce logging has been integrated with Frappe's logging system.")
 
 
 def _get_logger():
