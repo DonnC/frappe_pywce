@@ -40,6 +40,21 @@ def _internal_webhook_handler(wa_id:str, payload:dict):
         lock_key =  create_cache_key(f"lock:{wa_id}")
         
         with frappe.cache().lock(lock_key, timeout=LOCK_LEASE_TIME, blocking_timeout=LOCK_WAIT_TIME):
+            # TODO: Add live support / ai logic here
+            live_state = session_manager.get(wa_id, "live_mode")
+            
+            if live_state and live_state.get("is_active"):
+                # --- ROUTE TO HUMAN ---
+                ticket_id = live_state.get("ticket_name")
+                message_text = extract_message_from_payload(payload) # Helper func
+                
+                # Append message to the Ticket (e.g., as a Comment)
+                frappe.get_doc("WhatsApp Support Ticket", ticket_id).add_comment(
+                    "Comment", text=message_text
+                )
+                # STOP here. Do not call the bot engine.
+                return
+            
             get_engine_config().process_webhook(payload)
 
     except redis.exceptions.LockError:
