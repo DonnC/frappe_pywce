@@ -14,16 +14,23 @@
   "access_token",
   "template_settings_section",
   "chatbot_name",
+  "column_break_gyky",
   "env",
   "column_break_irie",
   "process_in_background",
-  "btn_launch_emulator",
   "login_settings_section",
   "validate_webhook_payload",
-  "help_section",
-  "help",
+  "local_emulator_bridge_section",
+  "btn_launch_emulator",
+  "bridge_controls",
+  "column_break_eeoq",
+  "bridge_logs",
+  "bridge_pid",
+  "bridge_status",
   "flow_builder_settings_section",
-  "flow_json"
+  "flow_json",
+  "help_section",
+  "help"
  ],
  "fields": [
   {
@@ -101,13 +108,6 @@
    "options": "local\ntest\nlive"
   },
   {
-   "depends_on": "eval:doc.env === 'local'",
-   "description": "opens local whatsapp emulator page",
-   "fieldname": "btn_launch_emulator",
-   "fieldtype": "Button",
-   "label": "Launch Emulator"
-  },
-  {
    "default": "1",
    "fieldname": "validate_webhook_payload",
    "fieldtype": "Check",
@@ -128,10 +128,8 @@
    "report_hide": 1
   },
   {
-   "collapsible": 1,
    "fieldname": "help_section",
    "fieldtype": "Section Break",
-   "label": "Help",
    "no_copy": 1,
    "read_only": 1
   },
@@ -140,13 +138,54 @@
    "fieldtype": "HTML",
    "is_virtual": 1,
    "no_copy": 1
+  },
+  {
+   "depends_on": "eval:doc.env === 'local'",
+   "fieldname": "local_emulator_bridge_section",
+   "fieldtype": "Section Break",
+   "label": "Local Emulator Bridge"
+  },
+  {
+   "fieldname": "bridge_controls",
+   "fieldtype": "HTML",
+   "label": "Bridge Controls"
+  },
+  {
+   "fieldname": "column_break_eeoq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bridge_logs",
+   "fieldtype": "HTML",
+   "label": "Bridge Logs"
+  },
+  {
+   "fieldname": "bridge_status",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Bridge Status"
+  },
+  {
+   "fieldname": "bridge_pid",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Bridge PID"
+  },
+  {
+   "fieldname": "column_break_gyky",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "btn_launch_emulator",
+   "fieldtype": "Button",
+   "label": "Launch Emulator"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-11-17 20:28:00.815022",
+ "modified": "2025-11-25 16:43:26.358156",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "ChatBot Config",
