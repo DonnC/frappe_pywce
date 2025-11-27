@@ -75,7 +75,7 @@
   },
   {
    "default": "0",
-   "description": "handle every webhook request in the background",
+   "description": "process webhook request in background",
    "fieldname": "process_in_background",
    "fieldtype": "Check",
    "label": "Handle in background?"
@@ -143,12 +143,14 @@
    "depends_on": "eval:doc.env === 'local'",
    "fieldname": "local_emulator_bridge_section",
    "fieldtype": "Section Break",
-   "label": "Local Emulator Bridge"
+   "label": "Local Emulator Bridge",
+   "no_copy": 1
   },
   {
    "fieldname": "bridge_controls",
    "fieldtype": "HTML",
-   "label": "Bridge Controls"
+   "label": "Bridge Controls",
+   "no_copy": 1
   },
   {
    "fieldname": "column_break_eeoq",
@@ -163,13 +165,15 @@
    "fieldname": "bridge_status",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Bridge Status"
+   "label": "Bridge Status",
+   "read_only": 1
   },
   {
    "fieldname": "bridge_pid",
    "fieldtype": "Int",
    "hidden": 1,
-   "label": "Bridge PID"
+   "label": "Bridge PID",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_gyky",
@@ -185,7 +189,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-11-25 16:43:26.358156",
+ "modified": "2025-11-25 19:43:06.216912",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "ChatBot Config",

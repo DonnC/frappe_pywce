@@ -3,7 +3,7 @@ import json
 
 import frappe
 from frappe.sessions import get_expiry_in_seconds
-from frappe.utils import now_datetime
+from frappe.utils import now_datetime, strip_html
 
 from pywce import HookUtil, SessionConstants
 
@@ -35,6 +35,21 @@ def bot_settings():
     except Exception as e:
         logger.error("Failed to fetch Bot Settings: %s", str(e))
         frappe.throw(frappe._("Failed to fetch Bot Settings: {0}").format(str(e)))
+
+
+def clean_comment_for_whatsapp(html_content):
+    if not html_content: return ""
+    
+    text = html_content.replace("<b>", "*").replace("</b>", "*")
+    text = text.replace("<strong>", "*").replace("</strong>", "*")
+    text = text.replace("<i>", "_").replace("</i>", "_")
+    text = text.replace("<em>", "_").replace("</em>", "_")
+    
+    text = text.replace("<p>", "").replace("</p>", "\n")
+    text = text.replace("<br>", "\n")
+    
+    return strip_html(text).strip()
+
 
 def save_whatsapp_session(wa_id: str, sid: str, user: str, desired_ttl_minutes: int|None=None, created_from: str|None=None):
     """Persist mapping in DocType and cache. TTL chosen as min(desired ttl, Frappe session remaining)."""
@@ -115,7 +130,7 @@ def save_whatsapp_session(wa_id: str, sid: str, user: str, desired_ttl_minutes: 
         logger.debug("Unable to set cache for wa_id=%s", wa_id)
         return False
 
-def frappe_recursive_renderer(template_dict: dict, hook_path: str, hook_arg: object, ext_hook_processor: object) -> dict:
+def frappe_recursive_renderer(template_dict: dict, hook_path: str, hook_arg: object) -> dict:
     """
     It does two things:
     1. Gets the business context from the hook.
@@ -130,8 +145,7 @@ def frappe_recursive_renderer(template_dict: dict, hook_path: str, hook_arg: obj
         try:
             response = HookUtil.process_hook(
                 hook=hook_path,
-                arg=hook_arg,
-                external=ext_hook_processor
+                arg=hook_arg
             )
             business_context = response.template_body.render_template_payload 
         except Exception as e:

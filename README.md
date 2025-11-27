@@ -92,7 +92,96 @@ This will launch the Vite server (usually on `localhost:8080`) which hot-reloads
 
     Check the [example folder here](example)
 
-### Production Build
+---
+
+## Live Support & AI Handoff (Feature Overview)
+
+This feature enables a seamless transition from automated bot flows to live agents (human or AI). Suitable for Live Support.
+
+**Key Concepts:**
+  * **Traffic Cop:** The webhook handler decides whether to send a message to the Bot Engine or the Live Support system.
+  * **Interceptors:** Developer hooks that run *before* messages are saved (Inbound) or sent (Outbound), allowing for AI replies, sentiment analysis, or custom routing.
+
+### 1. Developer Hooks Reference
+
+You can now customize the live chat flow using these standard hooks in your app's `hooks.py`.
+
+**`pywce_live_inbound_handler`**
+
+  * **Trigger:** When a user sends a message while in "Live Mode".
+  * **Execution:** Runs *before* the message is saved as a comment.
+  * **Arguments:**
+      * `arg` (HookArg): The usual hook arg object
+  * **Returns:**
+      * `HookArg` (HookArg): The system sends this response *immediately* to the user and stops processing. (Use this for AI Agents).
+      
+      Modify the arg and pass your template response
+      ```python
+        # ...
+        arg.template_body = TemplateDynamicBody(template_response)
+
+        return arg
+      ```
+
+      * `None`: The system continues with the original text.
+
+**`pywce_live_outbound_handler`**
+
+  * **Trigger:** When an agent adds a comment to a Ticket.
+  * **Execution:** Runs *before* the comment is sent to WhatsApp.
+  * **Arguments:**
+      * `ticket_doc` (Document): The `WhatsApp Support Ticket` document.
+      * `message_text` (str): The text the agent typed.
+  * **Returns:**
+      * `HookArg` (HookArg): The system sends this response *immediately* to the user and stops processing.
+      
+      Modify the arg and pass your template response
+      ```python
+        # ...
+        arg.template_body = TemplateDynamicBody(template_response)
+
+        return arg
+      ```
+      * `None`: The system cancels the send (e.g., for internal notes).
+
+### 2. Configuration Examples
+
+Here is how to set up an AI Agent that intercepts queries about pricing.
+
+**`hooks.py`**
+
+```python
+pywce_live_inbound_handler = "my_app.chat.ai_interceptor"
+```
+
+**`my_app/chat.py`**
+
+```python
+from pywce import template, HookArg
+
+def ai_interceptor(arg: HookArg):
+    # Simple AI Logic
+    if "price" in message_text.lower():
+        # Return a full Engine Template to reply immediately
+        return template.TextTemplate(
+            message="Our pricing starts at $10/mo. Visit our site for details."
+        )
+    
+    return None
+```
+
+### 3. Live Support Setup (Standard Flow)
+
+To enable standard human support:
+
+1.  Add a "Connect to Agent" node in your Visual Builder.
+2.  Set its `on-receive` hook to `frappe_pywce.hooks.live_chat.start_live_chat`.
+3.  When a user hits this node, a `WhatsApp Support Ticket` is created, and they enter Live Mode.
+4.  Agents reply by commenting on the ticket in the Frappe Desk.
+5.  When the issue is resolved, the agent clicks **"Close Ticket"** to return the user to the bot.
+
+
+## Production Build
 
 To build the UI assets for production, run this single command:
 

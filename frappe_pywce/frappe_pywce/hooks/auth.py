@@ -10,7 +10,7 @@ from frappe_pywce.util import LOGIN_LINK_EXPIRE_AFTER_IN_MIN
 from frappe_pywce.pywce_logger import app_logger
 
 @frappe.whitelist()
-def generate_login_link(arg: HookArg) -> TemplateDynamicBody:
+def generate_login_link(arg: HookArg) -> HookArg:
     """
     Called by a bot state (e.g., on-receive).
     Generates a one-time login token and returns a message with the link.

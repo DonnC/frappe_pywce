@@ -139,13 +139,11 @@ app_license = "MIT"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+    "Comment": {
+        "on_update": "frappe_pywce.events.send_comment_to_whatsapp"
+    }
+}
 
 # Scheduled Tasks
 # ---------------

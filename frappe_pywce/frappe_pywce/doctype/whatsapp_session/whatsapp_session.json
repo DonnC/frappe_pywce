@@ -33,7 +33,7 @@
    "reqd": 1
   },
   {
-   "description": "Generally user mobile no / username",
+   "description": "user mobile no / username",
    "fieldname": "wa_id",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -91,7 +91,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-15 15:38:17.265021",
+ "modified": "2025-11-25 19:46:32.961948",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "WhatsApp Session",

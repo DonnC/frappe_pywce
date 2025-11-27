@@ -18,7 +18,6 @@ def on_hook_listener(arg: HookArg) -> None:
         arg (HookArg): Hook argument
     """
     frappe.local.hook_arg = arg
-    print('[on_hook_listener] Updated hook arg in frappe > local')
 
 def on_client_send_listener() -> None:
     """reset hook_arg to None"""
@@ -51,6 +50,7 @@ def get_engine_config() -> Engine:
             report_template_stage=storage_manager.REPORT_MENU,
             session_manager=FrappeRedisSessionManager(),
             external_renderer=frappe_recursive_renderer,
+            debounce_timeout_ms=0 if settings.env == "local" else 3000,
             on_hook_arg=on_hook_listener
         )
 
