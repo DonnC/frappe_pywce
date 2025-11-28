@@ -1,5 +1,7 @@
 import datetime
 import json
+import mimetypes
+
 
 import frappe
 from frappe.sessions import get_expiry_in_seconds
@@ -19,6 +21,12 @@ CACHE_KEY_PREFIX = "fpw:"
 LOCK_LEASE_TIME=300
 # 2. "Wait Time": How long a new job can WAIT IN LINE.
 LOCK_WAIT_TIME=30
+
+# Live mode global keys to bypass circular messages
+LIVE_MODE_CACHE_KEY = "live_mode"
+LIVE_MODE_SYSTEM_ALERT_PREFIX = "[System]"
+LIVE_MODE_WHATSAPP_ALERT_PREFIX = "[WhatsApp]"
+LIVE_MODE_AUTO_REPLY_PREFIX = "[Auto-Reply]"
 
 TEMPLATE_HOOK_ERROR_KEY = "error"
 TEMPLATE_HOOK_DOCTYPE_KEY = "doctype"
@@ -49,6 +57,30 @@ def clean_comment_for_whatsapp(html_content):
     text = text.replace("<br>", "\n")
     
     return strip_html(text).strip()
+
+def get_whatsapp_media_type(filename):
+    """
+    Determines the WhatsApp media type based on the file extension.
+    Returns: 'image', 'video', 'document', 'audio', or 'sticker'
+    Defaults to 'document' if unknown.
+    """
+    mime_type, _ = mimetypes.guess_type(filename)
+    
+    if not mime_type:
+        return "document"
+
+    if mime_type.startswith("image/"):
+        if "webp" in mime_type:
+            return "sticker"
+        return "image"
+        
+    if mime_type.startswith("video/"):
+        return "video"
+        
+    if mime_type.startswith("audio/"):
+        return "audio"
+    
+    return "document"
 
 
 def save_whatsapp_session(wa_id: str, sid: str, user: str, desired_ttl_minutes: int|None=None, created_from: str|None=None):

@@ -10,7 +10,8 @@
         "footer": "pywce",
         "buttons": [
           "Developer Profile",
-          "eHailing Bot"
+          "eHailing Bot",
+          "Live Chat"
         ]
       },
       "routes": [
@@ -25,6 +26,12 @@
           "pattern": "ehailing bot",
           "isRegex": false,
           "connectedTo": "button-1762499373358"
+        },
+        {
+          "id": "route_1764245285841",
+          "pattern": "live chat",
+          "isRegex": false,
+          "connectedTo": "text-1764245275092"
         }
       ],
       "position": {
@@ -364,7 +371,7 @@
       "hooks": [
         {
           "type": "template",
-          "path": "frappe_pywce.frappe_pywce.hook.auth.generate_login_link"
+          "path": "frappe_pywce.frappe_pywce.hooks.auth.generate_login_link"
         }
       ],
       "position": {
@@ -399,6 +406,31 @@
           "doctype_name": "ACC-SINV-2025-00053"
         }
       }
+    },
+    {
+      "id": "text-1764245275092",
+      "name": "LIVE CHAT",
+      "type": "text",
+      "message": "{{message}}",
+      "routes": [
+        {
+          "id": "route_1764245412128",
+          "pattern": ".*",
+          "isRegex": true,
+          "connectedTo": "button-1762493139035"
+        }
+      ],
+      "hooks": [
+        {
+          "type": "template",
+          "path": "frappe_pywce.frappe_pywce.hooks.live_chat.start_live_chat"
+        }
+      ],
+      "position": {
+        "x": 398.4268028007791,
+        "y": -64.17075544280785
+      },
+      "handleOrientation": "horizontal"
     }
   ],
   "version": "1.0"

@@ -8,10 +8,13 @@
  "field_order": [
   "wa_id",
   "status",
-  "is_guest",
+  "assigned_agent",
+  "claimed_at",
   "column_break_jtiw",
+  "wa_name",
   "subject",
-  "user"
+  "user",
+  "resolved_at"
  ],
  "fields": [
   {
@@ -23,41 +26,59 @@
    "reqd": 1
   },
   {
+   "default": "Open",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "\nOpen\nClosed"
+   "options": "\nOpen\nResolved\nClosed"
   },
   {
    "fieldname": "user",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "User",
+   "label": "WhatsApp LInked User",
    "options": "User"
   },
   {
    "fieldname": "subject",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Subject"
-  },
-  {
-   "default": "0",
-   "fieldname": "is_guest",
-   "fieldtype": "Check",
-   "label": "Guest?"
   },
   {
    "fieldname": "column_break_jtiw",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assigned_agent",
+   "fieldtype": "Link",
+   "label": "Assigned Agent",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "wa_name",
+   "fieldtype": "Data",
+   "label": "WhatsApp Name"
+  },
+  {
+   "fieldname": "claimed_at",
+   "fieldtype": "Datetime",
+   "label": "Claimed At"
+  },
+  {
+   "fieldname": "resolved_at",
+   "fieldtype": "Datetime",
+   "label": "Resolved At"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-27 14:44:28.659586",
+ "modified": "2025-11-28 11:53:32.392005",
  "modified_by": "Administrator",
  "module": "Frappe Pywce",
  "name": "WhatsApp Support Ticket",

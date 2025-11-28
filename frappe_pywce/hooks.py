@@ -141,8 +141,14 @@ app_license = "MIT"
 
 doc_events = {
     "Comment": {
-        "on_update": "frappe_pywce.events.send_comment_to_whatsapp"
-    }
+        "on_update": "frappe_pywce.live_mode.send_comment_to_whatsapp"
+    },
+    "File": {
+        "after_insert": "frappe_pywce.live_mode.on_file_upload"
+    },
+    "WhatsApp Support Ticket": {
+        "on_update": "frappe_pywce.live_mode.on_ticket_update"
+    },
 }
 
 # Scheduled Tasks

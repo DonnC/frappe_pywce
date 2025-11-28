@@ -47,6 +47,6 @@ def generate_login_link(arg: HookArg) -> HookArg:
 
         return arg
 
-    except Exception as e:
+    except Exception:
         frappe.log_error(title="Generate Bot LoginLink")
         raise EngineResponseException("Sorry, I couldn't generate a login link right now. Please try again later.")
