@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import {
-  useFrappeGetCall,
   useFrappeGetDoc,
   useFrappeUpdateDoc,
 } from "frappe-react-sdk";
@@ -73,6 +72,8 @@ const Index = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isFlowLoaded, setIsFlowLoaded] = useState(false);
 
+  //const { data, error, isLoading, update } = useChatBotConfig();
+
   const saveToHistory = useCallback(() => {
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push({ nodes: [...nodes], edges: [...edges] });
@@ -81,6 +82,7 @@ const Index = () => {
   }, [nodes, edges, history, historyIndex]);
 
   const [isSaving, setIsSaving] = useState(false);
+  
   const { data, error, isLoading, isValidating, mutate } =
     useFrappeGetDoc<ChatBotConfig>(chatbotConfigDocName, chatbotConfigDocName);
   const {
@@ -544,12 +546,6 @@ const Index = () => {
     } else {
       window.open(`/emulator`, "_blank");
     }
-  };
-
-  const FetchingComponent = () => {
-    const { data } = useFrappeGetCall("ping");
-
-    return <div>Ping: {data?.message}</div>;
   };
 
   return (
